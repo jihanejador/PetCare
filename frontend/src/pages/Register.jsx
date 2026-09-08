@@ -12,7 +12,7 @@ export default function Register() {
     e.preventDefault();
     try {
       await register(formData);
-      alert('Inscription réussie !');
+      window.location.href = '/login';
     } catch (err) {
       setErrors(err.response?.data?.errors || {});
     }
@@ -22,16 +22,21 @@ export default function Register() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded-xl shadow-md w-full max-w-md space-y-4">
         <h2 className="text-2xl font-bold text-center text-gray-800">Inscription</h2>
+        
         <div>
           <label className="block text-sm font-medium">Nom complet</label>
           <input type="text" required className="w-full mt-1 p-2 border rounded-md" 
             onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+          {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name[0]}</p>}
         </div>
+
         <div>
           <label className="block text-sm font-medium">Email</label>
           <input type="email" required className="w-full mt-1 p-2 border rounded-md" 
             onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+          {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email[0]}</p>}
         </div>
+
         <div>
           <label className="block text-sm font-medium">Rôle</label>
           <select className="w-full mt-1 p-2 border rounded-md" 
@@ -40,16 +45,20 @@ export default function Register() {
             <option value="pro">Professionnel</option>
           </select>
         </div>
+
         <div>
           <label className="block text-sm font-medium">Mot de passe</label>
           <input type="password" required className="w-full mt-1 p-2 border rounded-md" 
             onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
+          {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password[0]}</p>}
         </div>
+
         <div>
           <label className="block text-sm font-medium">Confirmer le mot de passe</label>
           <input type="password" required className="w-full mt-1 p-2 border rounded-md" 
             onChange={(e) => setFormData({ ...formData, password_confirmation: e.target.value })} />
         </div>
+
         <button type="submit" className="w-full bg-emerald-600 text-white py-2 rounded-md hover:bg-emerald-700">
           S'inscrire
         </button>
