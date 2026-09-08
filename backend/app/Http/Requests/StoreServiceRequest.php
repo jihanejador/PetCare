@@ -12,7 +12,7 @@ class StoreServiceRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return auth()->user()->role === 'pro';
     }
 
     /**
@@ -20,10 +20,12 @@ class StoreServiceRequest extends FormRequest
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
-    public function rules(): array
-    {
+    public function rules(): array{
         return [
-            //
+            'title'       => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
+            'price'       => 'required|numeric|min:0',
+            'description' => 'required|string|max:1000',
         ];
     }
 }
