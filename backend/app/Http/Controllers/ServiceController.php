@@ -8,13 +8,11 @@ use Illuminate\Http\Request;
 
 class ServiceController extends Controller
 {
-    
     public function index()
     {
-        $services = Service::with(['user', 'category'])->latest()->paginate(10);
+        $services = Service::with(['user', 'category'])->latest()->get();
         return response()->json($services);
     }
-
 
     public function store(StoreServiceRequest $request)
     {
@@ -26,16 +24,16 @@ class ServiceController extends Controller
         ], 201);
     }
 
-
     public function show(Service $service)
     {
         return response()->json($service->load(['user', 'category']));
     }
 
-
     public function update(StoreServiceRequest $request, Service $service)
     {
-        $this->authorize('update', $service);
+        if ($service->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Non autorisé.'], 403);
+        }
 
         $service->update($request->validated());
 
@@ -45,10 +43,11 @@ class ServiceController extends Controller
         ]);
     }
 
-
     public function destroy(Service $service)
     {
-        $this->authorize('delete', $service);
+        if ($service->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Non autorisé.'], 403);
+        }
 
         $service->delete();
 
