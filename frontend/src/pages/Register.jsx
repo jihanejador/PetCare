@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -7,12 +8,14 @@ export default function Register() {
   });
   const [errors, setErrors] = useState({});
   const { register } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrors({});
     try {
       await register(formData);
-      window.location.href = '/login';
+      navigate('/login');
     } catch (err) {
       setErrors(err.response?.data?.errors || {});
     }
@@ -24,42 +27,61 @@ export default function Register() {
         <h2 className="text-2xl font-bold text-center text-gray-800">Inscription</h2>
         
         <div>
-          <label className="block text-sm font-medium">Nom complet</label>
-          <input type="text" required className="w-full mt-1 p-2 border rounded-md" 
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+          <label className="block text-sm font-medium text-gray-700">Nom complet</label>
+          <input 
+            type="text" 
+            required 
+            className="w-full mt-1 p-2 border rounded-md focus:ring-2 focus:ring-emerald-600 focus:outline-none" 
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
+          />
           {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name[0]}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium">Email</label>
-          <input type="email" required className="w-full mt-1 p-2 border rounded-md" 
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+          <label className="block text-sm font-medium text-gray-700">Email</label>
+          <input 
+            type="email" 
+            required 
+            className="w-full mt-1 p-2 border rounded-md focus:ring-2 focus:ring-emerald-600 focus:outline-none" 
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })} 
+          />
           {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email[0]}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium">Rôle</label>
-          <select className="w-full mt-1 p-2 border rounded-md" 
-            onChange={(e) => setFormData({ ...formData, role: e.target.value })}>
+          <label className="block text-sm font-medium text-gray-700">Rôle</label>
+          <select 
+            className="w-full mt-1 p-2 border rounded-md focus:ring-2 focus:ring-emerald-600 focus:outline-none" 
+            value={formData.role}
+            onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+          >
             <option value="client">Propriétaire d'animal</option>
             <option value="pro">Professionnel</option>
           </select>
         </div>
 
         <div>
-          <label className="block text-sm font-medium">Mot de passe</label>
-          <input type="password" required className="w-full mt-1 p-2 border rounded-md" 
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })} />
+          <label className="block text-sm font-medium text-gray-700">Mot de passe</label>
+          <input 
+            type="password" 
+            required 
+            className="w-full mt-1 p-2 border rounded-md focus:ring-2 focus:ring-emerald-600 focus:outline-none" 
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })} 
+          />
           {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password[0]}</p>}
         </div>
 
         <div>
-          <label className="block text-sm font-medium">Confirmer le mot de passe</label>
-          <input type="password" required className="w-full mt-1 p-2 border rounded-md" 
-            onChange={(e) => setFormData({ ...formData, password_confirmation: e.target.value })} />
+          <label className="block text-sm font-medium text-gray-700">Confirmer le mot de passe</label>
+          <input 
+            type="password" 
+            required 
+            className="w-full mt-1 p-2 border rounded-md focus:ring-2 focus:ring-emerald-600 focus:outline-none" 
+            onChange={(e) => setFormData({ ...formData, password_confirmation: e.target.value })} 
+          />
         </div>
 
-        <button type="submit" className="w-full bg-emerald-600 text-white py-2 rounded-md hover:bg-emerald-700">
+        <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-md font-medium transition duration-200">
           S'inscrire
         </button>
       </form>

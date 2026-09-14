@@ -1,12 +1,12 @@
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const { user, logout } = useAuth();
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+  const handleLogout = async () => {
+    await logout();
     navigate('/login');
   };
 
@@ -21,7 +21,7 @@ export default function Navbar() {
 
       <div className="flex items-center gap-6">
         <span className="text-xs bg-white/10 px-3 py-1.5 rounded-full font-semibold text-gray-200">
-          {user?.name ? ` ${user.name} (${user.role?.toUpperCase()})` : 'Visiteur'}
+          {user?.name ? `${user.name} (${user.role?.toUpperCase()})` : 'Visiteur'}
         </span>
 
         <button

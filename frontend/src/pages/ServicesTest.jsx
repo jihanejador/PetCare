@@ -37,7 +37,7 @@ export default function ServicesTest() {
         setEditingService(null);
       } else {
         await createService(formData);
-        setMessage(' Service créé avec succès !');
+        setMessage('Service créé avec succès !');
       }
       fetchServices();
     } catch (err) {
@@ -89,7 +89,6 @@ export default function ServicesTest() {
         </div>
       )}
 
-      {}
       <div className="max-w-xl mx-auto">
         {editingService && (
           <div className="mb-2 flex justify-between items-center bg-amber-50 p-3 rounded-lg border border-amber-200 text-amber-800 text-sm">
@@ -110,7 +109,6 @@ export default function ServicesTest() {
         />
       </div>
 
-      {}
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 max-w-xl mx-auto space-y-4">
         <h3 className="text-xl font-bold text-[#0c3239]">Mes Services</h3>
         {services.length === 0 ? (

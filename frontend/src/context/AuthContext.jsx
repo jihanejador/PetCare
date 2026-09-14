@@ -4,7 +4,10 @@ import api from '../api/axios';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem('user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -14,8 +17,11 @@ export const AuthProvider = ({ children }) => {
         try {
           const response = await api.get('/me');
           setUser(response.data);
+          localStorage.setItem('user', JSON.stringify(response.data));
         } catch {
           localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          setUser(null);
         }
       }
       setLoading(false);
@@ -26,6 +32,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     const response = await api.post('/login', credentials);
     localStorage.setItem('token', response.data.token);
+    localStorage.setItem('user', JSON.stringify(response.data.user));
     setUser(response.data.user);
     return response.data;
   };
@@ -33,6 +40,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     const response = await api.post('/register', userData);
     localStorage.setItem('token', response.data.token);
+    localStorage.setItem('user', JSON.stringify(response.data.user));
     setUser(response.data.user);
     return response.data;
   };
@@ -42,6 +50,7 @@ export const AuthProvider = ({ children }) => {
       await api.post('/logout');
     } finally {
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
       setUser(null);
     }
   };
