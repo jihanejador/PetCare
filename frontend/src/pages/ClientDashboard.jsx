@@ -40,7 +40,7 @@ export default function ClientDashboard() {
 
   return (
     <div className="bg-[#faf9f6] min-h-screen pb-12">
-      {/* Navbar Section */}
+      {}
       <nav className="bg-[#0c3239] text-white px-8 py-5 flex justify-between items-center shadow-md">
         <div className="text-2xl font-black tracking-tight flex items-center gap-2">
           <span className="text-[#82c341]">- BestPet -</span>
@@ -52,7 +52,7 @@ export default function ClientDashboard() {
         </div>
       </nav>
 
-      {/* Hero Banner Section (US 2.1) */}
+      {}
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="bg-[#0c3239] rounded-[2.5rem] p-8 md:p-12 text-white flex flex-col lg:flex-row items-center justify-between gap-8 relative overflow-hidden shadow-xl">
           <div className="max-w-xl space-y-4 z-10">
@@ -66,7 +66,7 @@ export default function ClientDashboard() {
               We treat your furry family members exactly like our own. Trouvez rapidement les meilleurs professionnels près de chez vous.
             </p>
 
-            {/* Barre de Recherche Multi-Critères */}
+            {}
             <div className="bg-white p-3 rounded-2xl shadow-xl text-gray-800 grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
               <input
                 type="text"
@@ -107,7 +107,7 @@ export default function ClientDashboard() {
         </div>
       </div>
 
-      {/* Services Grid Results */}
+      {}
       <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-black text-[#0c3239]">Services Disponibles</h2>
