@@ -8,9 +8,34 @@ use Illuminate\Http\Request;
 
 class ServiceController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $services = Service::with(['user', 'category'])->latest()->get();
+        $query = Service::with(['user', 'category']);
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhereHas('user', function ($u) use ($search) {
+                      $u->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($request->filled('city')) {
+            $city = $request->city;
+            $query->whereHas('user', function ($q) use ($city) {
+                $q->where('city', 'like', "%{$city}%");
+            });
+        }
+
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        $services = $query->latest()->paginate(9);
+
         return response()->json($services);
     }
 
