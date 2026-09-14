@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getServices } from '../services/serviceApi';
+import Navbar from '../components/Navbar';
 
 export default function ClientDashboard() {
   const [services, setServices] = useState([]);
@@ -41,16 +42,7 @@ export default function ClientDashboard() {
   return (
     <div className="bg-[#faf9f6] min-h-screen pb-12">
       {}
-      <nav className="bg-[#0c3239] text-white px-8 py-5 flex justify-between items-center shadow-md">
-        <div className="text-2xl font-black tracking-tight flex items-center gap-2">
-          <span className="text-[#82c341]">- BestPet -</span>
-        </div>
-        <div className="flex gap-6 text-sm font-semibold">
-          <a href="#" className="hover:text-[#82c341] transition-colors">About us</a>
-          <a href="#" className="hover:text-[#82c341] transition-colors">Services</a>
-          <a href="#" className="hover:text-[#82c341] transition-colors">Contacts</a>
-        </div>
-      </nav>
+      <Navbar />
 
       {}
       <div className="max-w-7xl mx-auto px-6 py-8">
