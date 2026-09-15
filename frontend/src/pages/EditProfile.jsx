@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getProfile, updateProfile } from '../services/serviceApi';
 
 export default function EditProfile() {
+  const navigate = useNavigate();
   const { user, setUser } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
@@ -69,8 +71,27 @@ export default function EditProfile() {
     }
   };
 
+  const handleBack = () => {
+    if (user?.role === 'pro') {
+      navigate('/pro/dashboard');
+    } else {
+      navigate('/dashboard');
+    }
+  };
+
   return (
-    <div className="max-w-xl mx-auto my-10 p-6 bg-white rounded-2xl shadow-sm border">
+    <div className="max-w-xl mx-auto my-10 p-6 bg-white rounded-2xl shadow-sm border relative">
+      {}
+      <button
+        onClick={handleBack}
+        className="flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-[#0c3239] mb-4 transition cursor-pointer"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Retour 
+      </button>
+
       <h2 className="text-2xl font-bold text-[#0c3239] mb-6">Modifier mon profil</h2>
 
       {message && (
