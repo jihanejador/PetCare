@@ -2,9 +2,60 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Rendezvous;
 use Illuminate\Http\Request;
 
 class RendezvousController extends Controller
 {
-    //
+    public function store(Request $request)
+    {
+        $request->validate([
+            'service_id' => 'required|exists:services,id',
+            'date'       => 'required|date|after_or_equal:today',
+            'time'       => 'required',
+        ]);
+
+        $rendezvous = Rendezvous::create([
+            'client_id'  => $request->user()->id,
+            'service_id' => $request->service_id,
+            'date'       => $request->date,
+            'time'       => $request->time,
+            'status'     => 'pending',
+        ]);
+
+        return response()->json([
+            'message'    => 'Rendez-vous demandé avec succès',
+            'rendezvous' => $rendezvous->load('service')
+        ], 201);
+    }
+
+    public function proIndex(Request $request)
+    {
+        $user = $request->user();
+
+        $rendezvous = Rendezvous::whereHas('service', function ($q) use ($user) {
+            $q->where('user_id', $user->id);
+        })
+        ->with(['client', 'service'])
+        ->orderBy('date', 'asc')
+        ->get();
+
+        return response()->json($rendezvous);
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:accepted,rejected,cancelled,completed'
+        ]);
+
+        $rendezvous = Rendezvous::findOrFail($id);
+
+        $rendezvous->update(['status' => $request->status]);
+
+        return response()->json([
+            'message'    => 'Statut mis à jour avec succès',
+            'rendezvous' => $rendezvous
+        ]);
+    }
 }
