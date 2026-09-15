@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { getServices } from '../services/serviceApi';
 import Navbar from '../components/Navbar';
 
@@ -12,6 +13,12 @@ export default function ClientDashboard() {
   const [categoryId, setCategoryId] = useState('');
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+
+  const [selectedService, setSelectedService] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [bookingData, setBookingData] = useState({ date: '', time: '' });
+  const [bookingLoading, setBookingLoading] = useState(false);
+  const [bookingMessage, setBookingMessage] = useState({ type: '', text: '' });
 
   const categories = [
     { id: 1, name: "Garde d'animaux" },
@@ -40,6 +47,39 @@ export default function ClientDashboard() {
   useEffect(() => {
     fetchFilteredServices();
   }, [search, city, categoryId, page]);
+
+  const handleBookService = async (e) => {
+    e.preventDefault();
+    setBookingLoading(true);
+    setBookingMessage({ type: '', text: '' });
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(
+        'http://127.0.0.1:8000/api/rendezvous',
+        {
+          service_id: selectedService.id,
+          date: bookingData.date,
+          time: bookingData.time,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      setBookingMessage({ type: 'success', text: 'Rendez-vous demandé avec succès !' });
+      setTimeout(() => {
+        setIsModalOpen(false);
+        setBookingMessage({ type: '', text: '' });
+        setBookingData({ date: '', time: '' });
+      }, 1500);
+    } catch (err) {
+      console.error('Erreur réservation:', err);
+      setBookingMessage({ type: 'error', text: err.response?.data?.message || 'Erreur lors de la réservation.' });
+    } finally {
+      setBookingLoading(false);
+    }
+  };
 
   return (
     <div className="bg-[#faf9f6] min-h-screen pb-12">
@@ -126,7 +166,6 @@ export default function ClientDashboard() {
                     <h3 className="text-lg font-bold text-[#0c3239]">{s.title}</h3>
                     <p className="text-xs text-gray-500 line-clamp-2">{s.description}</p>
                     
-                    {}
                     <div 
                       onClick={() => navigate(`/pro/${s.user?.id}`)} 
                       className="flex items-center gap-2 pt-2 border-t border-gray-50 cursor-pointer hover:opacity-80 transition"
@@ -153,7 +192,13 @@ export default function ClientDashboard() {
                       <span className="text-[10px] text-gray-400 block uppercase tracking-wider font-bold">Tarif</span>
                       <span className="text-lg font-black text-[#82c341]">{s.price} DH/h</span>
                     </div>
-                    <button className="px-5 py-2.5 bg-[#0c3239] hover:bg-[#82c341] hover:text-[#0c3239] text-white text-xs font-extrabold rounded-full transition-all shadow-sm">
+                    <button 
+                      onClick={() => {
+                        setSelectedService(s);
+                        setIsModalOpen(true);
+                      }}
+                      className="px-5 py-2.5 bg-[#0c3239] hover:bg-[#82c341] hover:text-[#0c3239] text-white text-xs font-extrabold rounded-full transition-all shadow-sm cursor-pointer"
+                    >
                       Réserver
                     </button>
                   </div>
@@ -179,6 +224,65 @@ export default function ClientDashboard() {
           </div>
         )}
       </div>
+
+      {}
+      {isModalOpen && selectedService && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl relative space-y-4">
+            <button 
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold"
+            >
+              ✕
+            </button>
+
+            <h3 className="text-xl font-bold text-[#0c3239]">Réserver un rendez-vous</h3>
+            <p className="text-xs text-gray-500">
+              Service : <span className="font-bold text-[#0c3239]">{selectedService.title}</span>
+            </p>
+
+            {bookingMessage.text && (
+              <div className={`p-3 rounded-xl text-xs font-semibold text-center ${
+                bookingMessage.type === 'success' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+              }`}>
+                {bookingMessage.text}
+              </div>
+            )}
+
+            <form onSubmit={handleBookService} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Date du rendez-vous</label>
+                <input 
+                  type="date" 
+                  required
+                  value={bookingData.date}
+                  onChange={(e) => setBookingData({ ...bookingData, date: e.target.value })}
+                  className="w-full p-2.5 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-[#0c3239] outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Heure</label>
+                <input 
+                  type="time" 
+                  required
+                  value={bookingData.time}
+                  onChange={(e) => setBookingData({ ...bookingData, time: e.target.value })}
+                  className="w-full p-2.5 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-[#0c3239] outline-none"
+                />
+              </div>
+
+              <button 
+                type="submit" 
+                disabled={bookingLoading}
+                className="w-full bg-[#82c341] text-[#0c3239] py-3 rounded-xl font-black hover:bg-[#72ad37] transition duration-200 text-xs disabled:opacity-50 cursor-pointer"
+              >
+                {bookingLoading ? 'Envoi en cours...' : 'Confirmer la demande'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
