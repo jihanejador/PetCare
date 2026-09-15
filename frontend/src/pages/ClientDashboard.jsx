@@ -41,10 +41,8 @@ export default function ClientDashboard() {
 
   return (
     <div className="bg-[#faf9f6] min-h-screen pb-12">
-      {}
       <Navbar />
 
-      {}
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="bg-[#0c3239] rounded-[2.5rem] p-8 md:p-12 text-white flex flex-col lg:flex-row items-center justify-between gap-8 relative overflow-hidden shadow-xl">
           <div className="max-w-xl space-y-4 z-10">
@@ -58,7 +56,6 @@ export default function ClientDashboard() {
               We treat your furry family members exactly like our own. Trouvez rapidement les meilleurs professionnels près de chez vous.
             </p>
 
-            {}
             <div className="bg-white p-3 rounded-2xl shadow-xl text-gray-800 grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
               <input
                 type="text"
@@ -99,7 +96,6 @@ export default function ClientDashboard() {
         </div>
       </div>
 
-      {}
       <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-black text-[#0c3239]">Services Disponibles</h2>
@@ -110,41 +106,58 @@ export default function ClientDashboard() {
           <div className="text-center py-12 text-gray-500 font-bold">Chargement des services...</div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {services.map((s) => (
-              <div key={s.id} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4">
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs font-bold bg-[#f3a6b8]/20 text-[#0c3239] px-3 py-1 rounded-full">
-                      {s.category?.name || 'Général'}
-                    </span>
-                    <span className="text-xs font-semibold text-gray-400">📍 {s.user?.city || 'Maroc'}</span>
-                  </div>
-                  <h3 className="text-lg font-bold text-[#0c3239]">{s.title}</h3>
-                  <p className="text-xs text-gray-500 line-clamp-2">{s.description}</p>
-                  
-                  <div className="flex items-center gap-2 pt-2 border-t border-gray-50">
-                    <div className="w-8 h-8 bg-gray-100 rounded-full overflow-hidden flex justify-center items-center font-bold text-xs text-[#0c3239]">
-                      {s.user?.avatar ? <img src={s.user.avatar} alt="pro" /> : s.user?.name?.charAt(0)}
-                    </div>
-                    <span className="text-xs font-bold text-gray-700">{s.user?.name}</span>
-                  </div>
-                </div>
+            {services.map((s) => {
+              const proPhoto = s.user?.photo || s.user?.avatar;
+              const photoUrl = proPhoto
+                ? (proPhoto.startsWith('http') ? proPhoto : `http://127.0.0.1:8000/storage/${proPhoto}`)
+                : null;
 
-                <div className="pt-4 border-t flex justify-between items-center">
-                  <div>
-                    <span className="text-[10px] text-gray-400 block uppercase tracking-wider font-bold">Tarif</span>
-                    <span className="text-lg font-black text-[#82c341]">{s.price} DH/h</span>
+              return (
+                <div key={s.id} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-bold bg-[#f3a6b8]/20 text-[#0c3239] px-3 py-1 rounded-full">
+                        {s.category?.name || 'Général'}
+                      </span>
+                      <span className="text-xs font-semibold text-gray-400">📍 {s.user?.city || 'Maroc'}</span>
+                    </div>
+                    <h3 className="text-lg font-bold text-[#0c3239]">{s.title}</h3>
+                    <p className="text-xs text-gray-500 line-clamp-2">{s.description}</p>
+                    
+                    {}
+                    <div className="flex items-center gap-2 pt-2 border-t border-gray-50">
+                      <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-200">
+                        {photoUrl ? (
+                          <img 
+                            src={photoUrl} 
+                            alt={s.user?.name || 'Pro'} 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="font-bold text-xs text-[#0c3239]">
+                            {s.user?.name ? s.user.name.charAt(0).toUpperCase() : 'P'}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs font-bold text-gray-700">{s.user?.name}</span>
+                    </div>
                   </div>
-                  <button className="px-5 py-2.5 bg-[#0c3239] hover:bg-[#82c341] hover:text-[#0c3239] text-white text-xs font-extrabold rounded-full transition-all shadow-sm">
-                    Réserver
-                  </button>
+
+                  <div className="pt-4 border-t flex justify-between items-center">
+                    <div>
+                      <span className="text-[10px] text-gray-400 block uppercase tracking-wider font-bold">Tarif</span>
+                      <span className="text-lg font-black text-[#82c341]">{s.price} DH/h</span>
+                    </div>
+                    <button className="px-5 py-2.5 bg-[#0c3239] hover:bg-[#82c341] hover:text-[#0c3239] text-white text-xs font-extrabold rounded-full transition-all shadow-sm">
+                      Réserver
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
-        {}
         {pagination.last_page > 1 && (
           <div className="flex justify-center gap-2 pt-8">
             {Array.from({ length: pagination.last_page }).map((_, index) => (
