@@ -5,6 +5,7 @@ import Register from './pages/Register';
 import ProDashboard from './pages/ProDashboard';
 import ClientDashboard from './pages/ClientDashboard';
 import ServicesTest from './pages/ServicesTest';
+import EditProfile from './pages/EditProfile';
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
           <Route path="/pro/dashboard" element={<ProDashboard />} />
           <Route path="/dashboard" element={<ClientDashboard />} />
           <Route path="/test-services" element={<ServicesTest />} />
+          <Route path="/profile" element={<EditProfile />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>

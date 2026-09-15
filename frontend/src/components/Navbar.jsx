@@ -19,10 +19,14 @@ export default function Navbar() {
         <span className="text-[#82c341]">- BestPet -</span>
       </div>
 
-      <div className="flex items-center gap-6">
-        <span className="text-xs bg-white/10 px-3 py-1.5 rounded-full font-semibold text-gray-200">
+      <div className="flex items-center gap-4">
+        {}
+        <button
+          onClick={() => navigate('/profile')}
+          className="text-xs bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full font-semibold text-gray-200 transition-all cursor-pointer border border-white/10"
+        >
           {user?.name ? `${user.name} (${user.role?.toUpperCase()})` : 'Visiteur'}
-        </span>
+        </button>
 
         <button
           onClick={handleLogout}
