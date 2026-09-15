@@ -6,6 +6,7 @@ import ProDashboard from './pages/ProDashboard';
 import ClientDashboard from './pages/ClientDashboard';
 import ServicesTest from './pages/ServicesTest';
 import EditProfile from './pages/EditProfile';
+import ProProfile from './pages/ProProfile';
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
           <Route path="/test-services" element={<ServicesTest />} />
           <Route path="/profile" element={<EditProfile />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="/pro/:id" element={<ProProfile />} />
         </Routes>
       </Router>
     </AuthProvider>
