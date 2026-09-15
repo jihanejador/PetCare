@@ -14,6 +14,8 @@ export default function ClientDashboard() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
 
+  const [reservedServiceIds, setReservedServiceIds] = useState([]);
+
   const [selectedService, setSelectedService] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [bookingData, setBookingData] = useState({ date: '', time: '' });
@@ -66,6 +68,8 @@ export default function ClientDashboard() {
           headers: { Authorization: `Bearer ${token}` }
         }
       );
+
+      setReservedServiceIds((prev) => [...prev, selectedService.id]);
 
       setBookingMessage({ type: 'success', text: 'Rendez-vous demandé avec succès !' });
       setTimeout(() => {
@@ -154,6 +158,8 @@ export default function ClientDashboard() {
                 ? (proPhoto.startsWith('http') ? proPhoto : `http://127.0.0.1:8000/storage/${proPhoto}`)
                 : null;
 
+              const isReserved = reservedServiceIds.includes(s.id);
+
               return (
                 <div key={s.id} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4">
                   <div className="space-y-3">
@@ -192,15 +198,25 @@ export default function ClientDashboard() {
                       <span className="text-[10px] text-gray-400 block uppercase tracking-wider font-bold">Tarif</span>
                       <span className="text-lg font-black text-[#82c341]">{s.price} DH/h</span>
                     </div>
-                    <button 
-                      onClick={() => {
-                        setSelectedService(s);
-                        setIsModalOpen(true);
-                      }}
-                      className="px-5 py-2.5 bg-[#0c3239] hover:bg-[#82c341] hover:text-[#0c3239] text-white text-xs font-extrabold rounded-full transition-all shadow-sm cursor-pointer"
-                    >
-                      Réserver
-                    </button>
+
+                    {isReserved ? (
+                      <button 
+                        disabled
+                        className="px-5 py-2.5 bg-gray-200 text-gray-500 text-xs font-extrabold rounded-full cursor-not-allowed shadow-none"
+                      >
+                        Déjà réservé ✓
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={() => {
+                          setSelectedService(s);
+                          setIsModalOpen(true);
+                        }}
+                        className="px-5 py-2.5 bg-[#0c3239] hover:bg-[#82c341] hover:text-[#0c3239] text-white text-xs font-extrabold rounded-full transition-all shadow-sm cursor-pointer"
+                      >
+                        Réserver
+                      </button>
+                    )}
                   </div>
                 </div>
               );
