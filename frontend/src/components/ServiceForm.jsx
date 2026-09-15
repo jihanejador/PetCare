@@ -25,15 +25,23 @@ export default function ServiceForm({ categories, initialData, onSubmit, isLoadi
   }, [initialData]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-    if (errors[e.target.name]) {
-      setErrors({ ...errors, [e.target.name]: null });
+    const { name, value } = e.target;
+
+    const formattedValue =
+      (name === 'category_id' || name === 'price') && value !== ''
+        ? Number(value)
+        : value;
+
+    setFormData({ ...formData, [name]: formattedValue });
+
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: null });
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const success = await onSubmit(formData, setErrors);
 
     if (success !== false) {

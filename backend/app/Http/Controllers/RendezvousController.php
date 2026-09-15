@@ -20,7 +20,7 @@ class RendezvousController extends Controller
             'service_id' => $request->service_id,
             'date'       => $request->date,
             'time'       => $request->time,
-            'status'     => 'pending',
+            'status'     => 'Pending',
         ]);
 
         return response()->json([
