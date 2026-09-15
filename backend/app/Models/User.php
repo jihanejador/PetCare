@@ -17,10 +17,11 @@ class User extends Authenticatable
         'password',
         'phone',
         'photo',
-        'address',
         'city',
-        'role',
+        'address',
         'description',
+        'role',
+        'avatar',
         'specialty',
     ];
 
