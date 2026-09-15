@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getServices } from '../services/serviceApi';
 import Navbar from '../components/Navbar';
 
 export default function ClientDashboard() {
+  const navigate = useNavigate();
   const [services, setServices] = useState([]);
   const [pagination, setPagination] = useState({});
   const [search, setSearch] = useState('');
@@ -125,7 +127,10 @@ export default function ClientDashboard() {
                     <p className="text-xs text-gray-500 line-clamp-2">{s.description}</p>
                     
                     {}
-                    <div className="flex items-center gap-2 pt-2 border-t border-gray-50">
+                    <div 
+                      onClick={() => navigate(`/pro/${s.user?.id}`)} 
+                      className="flex items-center gap-2 pt-2 border-t border-gray-50 cursor-pointer hover:opacity-80 transition"
+                    >
                       <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-200">
                         {photoUrl ? (
                           <img 
@@ -139,7 +144,7 @@ export default function ClientDashboard() {
                           </span>
                         )}
                       </div>
-                      <span className="text-xs font-bold text-gray-700">{s.user?.name}</span>
+                      <span className="text-xs font-bold text-gray-700 hover:underline">{s.user?.name}</span>
                     </div>
                   </div>
 
