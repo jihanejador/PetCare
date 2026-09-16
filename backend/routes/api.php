@@ -30,6 +30,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/rendezvous', [RendezvousController::class, 'store']);
     Route::get('/pro/rendezvous', [RendezvousController::class, 'proIndex']);
     Route::patch('/rendezvous/{id}/status', [RendezvousController::class, 'updateStatus']);
+    Route::patch('/rendezvous/{id}/cancel', [RendezvousController::class, 'cancel']);
 
     Route::post('/services', [ServiceController::class, 'store']);
     Route::put('/services/{service}', [ServiceController::class, 'update']);

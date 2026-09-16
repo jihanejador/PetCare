@@ -67,7 +67,7 @@ class RendezvousController extends Controller
         ]);
     }
 
-    public function cacel(Request $request, $id){
+    public function cancel(Request $request, $id){
         $user = $request->user();
 
         $rendezvous = Rendezvous::where('client_id', $user->id)->find($id);
