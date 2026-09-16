@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import Navbar from '../components/Navbar';
 import ServiceForm from '../components/ServiceForm';
 import { getServices, createService, updateService, deleteService } from '../services/serviceApi';
@@ -8,6 +9,9 @@ export default function ProDashboard() {
   const [editingService, setEditingService] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
+
+  const [rendezvousList, setRendezvousList] = useState([]);
+  const [loadingRendezvous, setLoadingRendezvous] = useState(false);
 
   const categories = [
     { id: 1, name: "Garde d'animaux" },
@@ -26,9 +30,54 @@ export default function ProDashboard() {
     }
   };
 
+  const fetchRendezvous = async () => {
+    setLoadingRendezvous(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get('http://127.0.0.1:8000/api/pro/rendezvous', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setRendezvousList(res.data);
+    } catch (err) {
+      console.error('Erreur chargement rendezvous:', err);
+    } finally {
+      setLoadingRendezvous(false);
+    }
+  };
+
   useEffect(() => {
     fetchMyServices();
+    fetchRendezvous();
   }, []);
+
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.patch(
+        `http://127.0.0.1:8000/api/rendezvous/${id}/status`,
+        { status: newStatus },
+        { 
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          } 
+        }
+      );
+
+      setMessage(`Statut mis à jour : ${newStatus}`);
+      
+      setRendezvousList((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, status: newStatus } : item))
+      );
+
+      setTimeout(() => setMessage(''), 3000);
+    } catch (err) {
+      console.error('Erreur changement statut:', err.response?.data || err);
+      const serverMessage = err.response?.data?.message || 'Erreur lors de la mise à jour du statut.';
+      alert(`Erreur: ${serverMessage}`);
+    }
+  };
 
   const handleSubmitService = async (formData, setErrors) => {
     setIsLoading(true);
@@ -36,11 +85,11 @@ export default function ProDashboard() {
     try {
       if (editingService) {
         await updateService(editingService.id, formData);
-        setMessage(' Service modifié avec succès !');
+        setMessage('Service modifié avec succès !');
         setEditingService(null);
       } else {
         await createService(formData);
-        setMessage(' Service publié avec succès !');
+        setMessage('Service publié avec succès !');
       }
       fetchMyServices();
       return true;
@@ -60,7 +109,7 @@ export default function ProDashboard() {
     if (window.confirm('Voulez-vous vraiment supprimer ce service ?')) {
       try {
         await deleteService(id);
-        setMessage(' Service supprimé avec succès !');
+        setMessage('Service supprimé avec succès !');
         fetchMyServices();
       } catch (err) {
         alert('Erreur lors de la suppression.');
@@ -69,14 +118,14 @@ export default function ProDashboard() {
   };
 
   return (
-    <div className="bg-[#faf9f6] min-h-screen">
+    <div className="bg-[#faf9f6] min-h-screen pb-12">
       <Navbar />
 
       <div className="max-w-7xl mx-auto p-6 space-y-8">
         <div className="bg-[#0c3239] text-white p-6 rounded-3xl shadow-lg flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold">Espace Professionnel</h1>
-            <p className="text-xs text-gray-300 mt-1">Gérez vos prestations et publiez de nouvelles offres</p>
+            <p className="text-xs text-gray-300 mt-1">Gérez vos prestations et traitez les demandes de rendez-vous</p>
           </div>
           <span className="bg-[#82c341] text-[#0c3239] text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-wider">
             Compte PRO
@@ -89,7 +138,68 @@ export default function ProDashboard() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {}
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-extrabold text-[#0c3239]">Demandes de Rendez-vous</h2>
+            <span className="text-xs font-bold text-gray-500">{rendezvousList.length} demande(s)</span>
+          </div>
+
+          {loadingRendezvous ? (
+            <div className="text-center py-6 text-gray-500 font-bold text-xs">Chargement des demandes...</div>
+          ) : rendezvousList.length === 0 ? (
+            <div className="bg-white p-6 rounded-3xl border border-gray-100 text-center text-xs font-bold text-gray-400">
+              Aucune demande de rendez-vous reçue pour le moment.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {rendezvousList.map((item) => (
+                <div key={item.id} className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm space-y-3 flex flex-col justify-between">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-start">
+                      <span className="text-xs font-bold text-[#0c3239]">{item.client?.name || 'Client'}</span>
+                      <span className={`text-[10px] font-black px-2.5 py-1 rounded-full ${
+                        item.status === 'Accepted' ? 'bg-emerald-100 text-emerald-800' :
+                        item.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
+                        'bg-amber-100 text-amber-800'
+                      }`}>
+                        {item.status}
+                      </span>
+                    </div>
+                    <p className="text-xs font-semibold text-gray-600">Service : <span className="font-bold text-[#0c3239]">{item.service?.title}</span></p>
+                    <div className="text-xs text-gray-500 bg-gray-50 p-2.5 rounded-xl font-medium">
+                       {item.date} &nbsp;•&nbsp;  {item.time}
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-gray-50 flex justify-end gap-2">
+                    {item.status === 'Pending' ? (
+                      <>
+                        <button
+                          onClick={() => handleStatusChange(item.id, 'Accepted')}
+                          className="px-3 py-1.5 bg-[#82c341] hover:bg-[#72ad37] text-[#0c3239] text-xs font-black rounded-xl transition"
+                        >
+                          Accepter
+                        </button>
+                        <button
+                          onClick={() => handleStatusChange(item.id, 'Cancelled')}
+                          className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold rounded-xl transition"
+                        >
+                          Refuser
+                        </button>
+                      </>
+                    ) : (
+                      <span className="text-xs text-gray-400 font-bold italic py-1">Demande traitée</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-4">
           <div className="lg:col-span-1">
             <ServiceForm
               categories={categories}

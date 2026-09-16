@@ -49,7 +49,15 @@ class RendezvousController extends Controller
             'status' => 'required|in:Accepted,Rejected,Cancelled,Completed,Pending'
         ]);
 
-        $rendezvous = Rendezvous::findOrFail($id);
+        $user = $request->user();
+
+        $rendezvous = Rendezvous::whereHas('service', function ($q) use ($user) {
+            $q->where('user_id', $user->id);
+        })->find($id);
+
+        if (!$rendezvous) {
+            return response()->json(['message' => 'Rendez-vous non trouvé ou non autorisé.'], 403);
+        }
 
         $rendezvous->update(['status' => $request->status]);
 
