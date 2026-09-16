@@ -46,7 +46,7 @@ class RendezvousController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:accepted,rejected,cancelled,completed'
+            'status' => 'required|in:Accepted,Rejected,Cancelled,Completed,Pending'
         ]);
 
         $rendezvous = Rendezvous::findOrFail($id);
