@@ -66,4 +66,23 @@ class RendezvousController extends Controller
             'rendezvous' => $rendezvous
         ]);
     }
+
+    public function cacel(Request $request, $id){
+        $user = $request->user();
+
+        $rendezvous = Rendezvous::where('client_id', $user->id)->find($id);
+        if(!$rendezvous){
+            return response()->json(['message' => 'Rendez-vous non trouve.'], 404);
+
+        }
+        if($rendezvous->status !== 'Panding'){
+            return response()->json(['message' => 'Impossible d\'annuler un rendez-vous deja teaite.'], 400);
+        }
+        $rendezvous->update(['status' => 'Cancelled']);
+
+        return respons()->json([
+            'message' => 'Rendez-vous annule avec succes.',
+            'rendezvous' => $rendezvous
+        ]);
+    }
 }
