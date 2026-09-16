@@ -67,21 +67,24 @@ class RendezvousController extends Controller
         ]);
     }
 
-    public function cancel(Request $request, $id){
+    public function cancel(Request $request, $id)
+    {
         $user = $request->user();
 
         $rendezvous = Rendezvous::where('client_id', $user->id)->find($id);
-        if(!$rendezvous){
-            return response()->json(['message' => 'Rendez-vous non trouve.'], 404);
 
+        if (!$rendezvous) {
+            return response()->json(['message' => 'Rendez-vous non trouvé.'], 404);
         }
-        if($rendezvous->status !== 'Panding'){
-            return response()->json(['message' => 'Impossible d\'annuler un rendez-vous deja teaite.'], 400);
+
+        if (strtolower($rendezvous->status) !== 'pending') {
+            return response()->json(['message' => 'Impossible d\'annuler un rendez-vous déjà traité.'], 400);
         }
+
         $rendezvous->update(['status' => 'Cancelled']);
 
-        return respons()->json([
-            'message' => 'Rendez-vous annule avec succes.',
+        return response()->json([
+            'message'    => 'Rendez-vous annulé avec succès.',
             'rendezvous' => $rendezvous
         ]);
     }
