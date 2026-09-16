@@ -21,7 +21,7 @@ Route::get('/categories', function () {
     return response()->json(Category::all());
 });
 
-Route::get('/services/{serviceId}/review', [ReviewController::class, 'getServiceReviews']);
+Route::get('/services/{serviceId}/reviews', [ReviewController::class, 'getServiceReviews']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);

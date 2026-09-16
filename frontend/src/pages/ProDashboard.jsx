@@ -159,8 +159,9 @@ export default function ProDashboard() {
                     <div className="flex justify-between items-start">
                       <span className="text-xs font-bold text-[#0c3239]">{item.client?.name || 'Client'}</span>
                       <span className={`text-[10px] font-black px-2.5 py-1 rounded-full ${
-                        item.status === 'Accepted' ? 'bg-emerald-100 text-emerald-800' :
-                        item.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
+                        item.status === 'Completed' || item.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                        item.status === 'Accepted' || item.status === 'accepted' ? 'bg-emerald-100 text-emerald-800' :
+                        item.status === 'Cancelled' || item.status === 'cancelled' ? 'bg-red-100 text-red-800' :
                         'bg-amber-100 text-amber-800'
                       }`}>
                         {item.status}
@@ -168,12 +169,12 @@ export default function ProDashboard() {
                     </div>
                     <p className="text-xs font-semibold text-gray-600">Service : <span className="font-bold text-[#0c3239]">{item.service?.title}</span></p>
                     <div className="text-xs text-gray-500 bg-gray-50 p-2.5 rounded-xl font-medium">
-                       {item.date} &nbsp;•&nbsp;  {item.time}
+                       {item.date} &nbsp;•&nbsp; {item.time}
                     </div>
                   </div>
 
                   <div className="pt-3 border-t border-gray-50 flex justify-end gap-2">
-                    {item.status === 'Pending' ? (
+                    {item.status?.toLowerCase() === 'pending' ? (
                       <>
                         <button
                           onClick={() => handleStatusChange(item.id, 'Accepted')}
@@ -188,6 +189,13 @@ export default function ProDashboard() {
                           Refuser
                         </button>
                       </>
+                    ) : item.status?.toLowerCase() === 'accepted' ? (
+                      <button
+                        onClick={() => handleStatusChange(item.id, 'Completed')}
+                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition"
+                      >
+                        Marquer comme terminé
+                      </button>
                     ) : (
                       <span className="text-xs text-gray-400 font-bold italic py-1">Demande traitée</span>
                     )}
