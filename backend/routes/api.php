@@ -20,6 +20,8 @@ Route::get('/categories', function () {
     return response()->json(Category::all());
 });
 
+Route::get('/services/{serviceId}/review', [ReviewController::class, 'getServiceReviews']);
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -36,4 +38,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/services', [ServiceController::class, 'store']);
     Route::put('/services/{service}', [ServiceController::class, 'update']);
     Route::delete('/services/{service}', [ServiceController::class, 'destroy']);
+
+    Route::post('/reviews', [ReviewController::class, 'store']);
 });
