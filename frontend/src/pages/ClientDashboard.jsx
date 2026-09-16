@@ -14,7 +14,7 @@ export default function ClientDashboard() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  const [reservedServiceIds, setReservedServiceIds] = useState([]);
+  const [myRendezvous, setMyRendezvous] = useState([]);
 
   const [selectedService, setSelectedService] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -46,8 +46,22 @@ export default function ClientDashboard() {
     }
   };
 
+  const fetchMyRendezvous = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      const res = await axios.get('http://127.0.0.1:8000/api/rendezvous/client', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setMyRendezvous(res.data || []);
+    } catch (err) {
+      console.error('Erreur chargement mes rendezvous:', err);
+    }
+  };
+
   useEffect(() => {
     fetchFilteredServices();
+    fetchMyRendezvous();
   }, [search, city, categoryId, page]);
 
   const handleBookService = async (e) => {
@@ -69,9 +83,9 @@ export default function ClientDashboard() {
         }
       );
 
-      setReservedServiceIds((prev) => [...prev, selectedService.id]);
-
       setBookingMessage({ type: 'success', text: 'Rendez-vous demandé avec succès !' });
+      await fetchMyRendezvous(); 
+
       setTimeout(() => {
         setIsModalOpen(false);
         setBookingMessage({ type: '', text: '' });
@@ -85,10 +99,33 @@ export default function ClientDashboard() {
     }
   };
 
+  const handleCancelRDV = async (id) => {
+    if (!window.confirm('Voulez-vous vraiment annuler ce rendez-vous ?')) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.patch(
+        `http://127.0.0.1:8000/api/rendezvous/${id}/cancel`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      setMyRendezvous((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, status: 'Cancelled' } : item))
+      );
+    } catch (err) {
+      console.error('Erreur annulation:', err);
+      alert(err.response?.data?.message || "Erreur lors de l'annulation.");
+    }
+  };
+
   return (
     <div className="bg-[#faf9f6] min-h-screen pb-12">
       <Navbar />
 
+      {}
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="bg-[#0c3239] rounded-[2.5rem] p-8 md:p-12 text-white flex flex-col lg:flex-row items-center justify-between gap-8 relative overflow-hidden shadow-xl">
           <div className="max-w-xl space-y-4 z-10">
@@ -102,6 +139,7 @@ export default function ClientDashboard() {
               We treat your furry family members exactly like our own. Trouvez rapidement les meilleurs professionnels près de chez vous.
             </p>
 
+            {}
             <div className="bg-white p-3 rounded-2xl shadow-xl text-gray-800 grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
               <input
                 type="text"
@@ -142,6 +180,44 @@ export default function ClientDashboard() {
         </div>
       </div>
 
+      {}
+      {myRendezvous.length > 0 && (
+        <div className="max-w-7xl mx-auto px-6 py-6 space-y-4">
+          <h2 className="text-2xl font-black text-[#0c3239]">Mes Rendez-vous</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {myRendezvous.map((rdv) => (
+              <div key={rdv.id} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between space-y-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="font-bold text-sm text-[#0c3239]">{rdv.service?.title || 'Service'}</h4>
+                    <p className="text-xs text-gray-500"> {rdv.date} à {rdv.time}</p>
+                  </div>
+                  <span className={`text-[10px] font-black px-2.5 py-1 rounded-full ${
+                    rdv.status?.toLowerCase() === 'accepted' ? 'bg-emerald-100 text-emerald-800' :
+                    rdv.status?.toLowerCase() === 'cancelled' || rdv.status?.toLowerCase() === 'rejected' ? 'bg-red-100 text-red-800' :
+                    'bg-amber-100 text-amber-800'
+                  }`}>
+                    {rdv.status}
+                  </span>
+                </div>
+
+                {rdv.status?.toLowerCase() === 'pending' && (
+                  <div className="pt-2 border-t border-gray-50 flex justify-end">
+                    <button
+                      onClick={() => handleCancelRDV(rdv.id)}
+                      className="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold rounded-xl transition cursor-pointer"
+                    >
+                      Annuler
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {}
       <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-black text-[#0c3239]">Services Disponibles</h2>
@@ -158,7 +234,10 @@ export default function ClientDashboard() {
                 ? (proPhoto.startsWith('http') ? proPhoto : `http://127.0.0.1:8000/storage/${proPhoto}`)
                 : null;
 
-              const isReserved = reservedServiceIds.includes(s.id);
+              const isReserved = myRendezvous.some(
+                (rdv) => Number(rdv.service_id) === Number(s.id) && 
+                (rdv.status?.toLowerCase() === 'pending' || rdv.status?.toLowerCase() === 'accepted')
+              );
 
               return (
                 <div key={s.id} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4">
@@ -167,7 +246,7 @@ export default function ClientDashboard() {
                       <span className="text-xs font-bold bg-[#f3a6b8]/20 text-[#0c3239] px-3 py-1 rounded-full">
                         {s.category?.name || 'Général'}
                       </span>
-                      <span className="text-xs font-semibold text-gray-400">📍 {s.user?.city || 'Maroc'}</span>
+                      <span className="text-xs font-semibold text-gray-400"> {s.user?.city || 'Maroc'}</span>
                     </div>
                     <h3 className="text-lg font-bold text-[#0c3239]">{s.title}</h3>
                     <p className="text-xs text-gray-500 line-clamp-2">{s.description}</p>
