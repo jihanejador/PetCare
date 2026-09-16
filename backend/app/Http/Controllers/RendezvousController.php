@@ -88,4 +88,13 @@ class RendezvousController extends Controller
             'rendezvous' => $rendezvous
         ]);
     }
+    public function clientIndex(Request $request){
+        $user = $request->user();
+
+        $rendezvous = Rendezvous::where('client_id', $user->id)
+            ->with('service')
+            ->orderBy('created_at', 'desc')
+            ->get();
+        return response()->json($rendezvous);
+    }
 }
