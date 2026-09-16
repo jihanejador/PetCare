@@ -10,11 +10,10 @@ return new class extends Migration
     {
         Schema::create('reviews', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('client_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('pro_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('rendezvous_id')->unique()->constrained('rendezvous')->onDelete('cascade'); // ضمان تقييم واحد لكل حجز
-            $table->integer('rating'); 
+            $table->tinyInteger('rating');
             $table->text('comment')->nullable();
+            $table->foreignId('client_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('service_id')->constrained('services')->onDelete('cascade');
             $table->timestamps();
         });
     }
