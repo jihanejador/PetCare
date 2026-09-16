@@ -5,6 +5,7 @@ use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RendezvousController;
+use App\Http\Controllers\ReviewController;
 use App\Models\Category;
 use Illuminate\Support\Facades\Route;
 

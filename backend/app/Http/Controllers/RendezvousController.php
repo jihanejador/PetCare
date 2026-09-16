@@ -97,4 +97,13 @@ class RendezvousController extends Controller
             ->get();
         return response()->json($rendezvous);
     }
+
+    public function markAsCompleted($id){
+        $rdv = Rendezvous::findOrFail($id);
+
+        $rdv->status = 'completed';
+        $rdv->save();
+
+        return response()->json(['message' => 'Rendez-vous marque comme termine', 'rendezvous' => $rdv]);
+    }
 }
