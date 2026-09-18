@@ -4,6 +4,26 @@ import axios from 'axios';
 import { getServices } from '../services/serviceApi';
 import Navbar from '../components/Navbar';
 
+function StarRating({ rating, setRating = null, readOnly = false }) {
+  return (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          disabled={readOnly}
+          onClick={() => setRating && setRating(star)}
+          className={`text-xl transition-transform ${
+            !readOnly ? 'hover:scale-125 cursor-pointer' : 'cursor-default'
+          } ${star <= rating ? 'text-amber-400' : 'text-gray-300'}`}
+        >
+          
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function ClientDashboard() {
   const navigate = useNavigate();
   const [services, setServices] = useState([]);
@@ -21,6 +41,12 @@ export default function ClientDashboard() {
   const [bookingData, setBookingData] = useState({ date: '', time: '' });
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingMessage, setBookingMessage] = useState({ type: '', text: '' });
+
+  const [selectedRdvForReview, setSelectedRdvForReview] = useState(null);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewedRdvs, setReviewedRdvs] = useState([]);
 
   const categories = [
     { id: 1, name: "Garde d'animaux" },
@@ -121,6 +147,40 @@ export default function ClientDashboard() {
     }
   };
 
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    if (!selectedRdvForReview) return;
+
+    setReviewLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(
+        'http://127.0.0.1:8000/api/reviews',
+        {
+          service_id: selectedRdvForReview.service_id,
+          rendezvous_id: selectedRdvForReview.id,
+          rating: rating,
+          comment: comment,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      alert('Avis ajouté avec succès !');
+      setReviewedRdvs((prev) => [...prev, selectedRdvForReview.id]);
+      setSelectedRdvForReview(null);
+      setComment('');
+      setRating(5);
+    } catch (err) {
+      console.error('Erreur envoi avis:', err);
+      const msg = err.response?.data?.message || 'Erreur lors de l’envoi de l’avis.';
+      alert(msg);
+    } finally {
+      setReviewLoading(false);
+    }
+  };
+
   return (
     <div className="bg-[#faf9f6] min-h-screen pb-12">
       <Navbar />
@@ -139,7 +199,6 @@ export default function ClientDashboard() {
               We treat your furry family members exactly like our own. Trouvez rapidement les meilleurs professionnels près de chez vous.
             </p>
 
-            {}
             <div className="bg-white p-3 rounded-2xl shadow-xl text-gray-800 grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
               <input
                 type="text"
@@ -190,9 +249,10 @@ export default function ClientDashboard() {
                 <div className="flex justify-between items-start">
                   <div>
                     <h4 className="font-bold text-sm text-[#0c3239]">{rdv.service?.title || 'Service'}</h4>
-                    <p className="text-xs text-gray-500"> {rdv.date} à {rdv.time}</p>
+                    <p className="text-xs text-gray-500">{rdv.date} à {rdv.time}</p>
                   </div>
                   <span className={`text-[10px] font-black px-2.5 py-1 rounded-full ${
+                    rdv.status?.toLowerCase() === 'completed' ? 'bg-blue-100 text-blue-800' :
                     rdv.status?.toLowerCase() === 'accepted' ? 'bg-emerald-100 text-emerald-800' :
                     rdv.status?.toLowerCase() === 'cancelled' || rdv.status?.toLowerCase() === 'rejected' ? 'bg-red-100 text-red-800' :
                     'bg-amber-100 text-amber-800'
@@ -201,16 +261,29 @@ export default function ClientDashboard() {
                   </span>
                 </div>
 
-                {rdv.status?.toLowerCase() === 'pending' && (
-                  <div className="pt-2 border-t border-gray-50 flex justify-end">
+                <div className="pt-2 border-t border-gray-50 flex justify-end">
+                  {rdv.status?.toLowerCase() === 'pending' && (
                     <button
                       onClick={() => handleCancelRDV(rdv.id)}
                       className="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold rounded-xl transition cursor-pointer"
                     >
                       Annuler
                     </button>
-                  </div>
-                )}
+                  )}
+
+                  {rdv.status?.toLowerCase() === 'completed' && (
+                    reviewedRdvs.includes(rdv.id) ? (
+                      <span className="text-xs text-emerald-600 font-bold italic py-1">Avis envoyé ✓</span>
+                    ) : (
+                      <button
+                        onClick={() => setSelectedRdvForReview(rdv)}
+                        className="px-3 py-1.5 bg-amber-400 hover:bg-amber-500 text-[#0c3239] text-xs font-black rounded-xl transition cursor-pointer"
+                      >
+                        ★ Laisser un avis
+                      </button>
+                    )
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -246,7 +319,7 @@ export default function ClientDashboard() {
                       <span className="text-xs font-bold bg-[#f3a6b8]/20 text-[#0c3239] px-3 py-1 rounded-full">
                         {s.category?.name || 'Général'}
                       </span>
-                      <span className="text-xs font-semibold text-gray-400"> {s.user?.city || 'Maroc'}</span>
+                      <span className="text-xs font-semibold text-gray-400">{s.user?.city || 'Maroc'}</span>
                     </div>
                     <h3 className="text-lg font-bold text-[#0c3239]">{s.title}</h3>
                     <p className="text-xs text-gray-500 line-clamp-2">{s.description}</p>
@@ -374,6 +447,61 @@ export default function ClientDashboard() {
               >
                 {bookingLoading ? 'Envoi en cours...' : 'Confirmer la demande'}
               </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {}
+      {selectedRdvForReview && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl relative">
+            <button 
+              type="button"
+              onClick={() => setSelectedRdvForReview(null)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold"
+            >
+              ✕
+            </button>
+
+            <h3 className="text-lg font-extrabold text-[#0c3239]">
+              Évaluer le service: {selectedRdvForReview.service?.title}
+            </h3>
+            
+            <form onSubmit={handleSubmitReview} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-600 mb-1">Note (sur 5)</label>
+                <StarRating rating={rating} setRating={setRating} />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-600 mb-1">Commentaire</label>
+                <textarea
+                  rows="3"
+                  maxLength="500"
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="Partagez votre expérience (facultatif)..."
+                  className="w-full text-xs p-3 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#82c341]"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedRdvForReview(null)}
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-xl"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={reviewLoading}
+                  className="px-4 py-2 bg-[#82c341] hover:bg-[#72ad37] text-[#0c3239] text-xs font-black rounded-xl cursor-pointer"
+                >
+                  {reviewLoading ? 'Envoi...' : 'Publier l’avis'}
+                </button>
+              </div>
             </form>
           </div>
         </div>
