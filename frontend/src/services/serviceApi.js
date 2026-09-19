@@ -35,3 +35,5 @@ export const logout = async () => {
     window.location.href = '/login';
   }
 };
+export const getFavorites = () => API.get('/favorites');
+export const toggleFavorite = (service_id) => API.post('/favorites/toggle', { service_id });
