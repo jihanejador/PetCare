@@ -33,18 +33,19 @@ class ReviewController extends Controller
         }
 
         $alreadyReviewed = Review::where('client_id', $user->id)
-            ->where('service_id', $request->service_id)
+            ->where('rendezvous_id', $request->rendezvous_id)
             ->exists();
 
         if ($alreadyReviewed) {
-            return response()->json(['message' => 'Vous avez déjà évalué ce service.'], 400);
+            return response()->json(['message' => 'Vous avez déjà évalué ce rendez-vous.'], 400);
         }
 
         $review = Review::create([
-            'client_id'  => $user->id,
-            'service_id' => $request->service_id,
-            'rating'     => $request->rating,
-            'comment'    => $request->comment,
+            'client_id'     => $user->id,
+            'service_id'    => $request->service_id,
+            'rendezvous_id' => $request->rendezvous_id,
+            'rating'        => $request->rating,
+            'comment'       => $request->comment,
         ]);
 
         return response()->json([

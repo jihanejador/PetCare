@@ -117,6 +117,19 @@ export default function ProDashboard() {
     }
   };
 
+  // Calculs statistiques
+  const totalCompleted = rendezvousList.filter(
+    (r) => r.status?.toLowerCase() === 'completed' || r.status?.toLowerCase() === 'accepted'
+  ).length;
+
+  const validRatings = services
+    .map((s) => Number(s.reviews_avg_rating || s.avg_rating || 0))
+    .filter((rating) => rating > 0);
+
+  const averageRating = validRatings.length
+    ? (validRatings.reduce((acc, curr) => acc + curr, 0) / validRatings.length).toFixed(1)
+    : '0.0';
+
   return (
     <div className="bg-[#faf9f6] min-h-screen pb-12">
       <Navbar />
@@ -132,13 +145,49 @@ export default function ProDashboard() {
           </span>
         </div>
 
+        {/* Cartes statistiques */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between">
+            <div>
+              <span className="text-xs font-bold text-gray-400 block uppercase">Services actifs</span>
+              <span className="text-2xl font-black text-[#0c3239]">{services.length}</span>
+            </div>
+            <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-[#82c341] flex items-center justify-center font-bold text-lg">
+              🛠️
+            </div>
+          </div>
+
+          <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between">
+            <div>
+              <span className="text-xs font-bold text-gray-400 block uppercase">Missions traitées</span>
+              <span className="text-2xl font-black text-[#0c3239]">{totalCompleted}</span>
+            </div>
+            <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-lg">
+              📅
+            </div>
+          </div>
+
+          <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between">
+            <div>
+              <span className="text-xs font-bold text-gray-400 block uppercase">Note moyenne</span>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="text-2xl font-black text-[#0c3239]">{averageRating}</span>
+                <span className="text-amber-400 text-lg">★</span>
+              </div>
+            </div>
+            <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center font-bold text-lg">
+              ⭐
+            </div>
+          </div>
+        </div>
+
         {message && (
           <div className="p-4 bg-emerald-100 border border-emerald-300 text-emerald-800 rounded-2xl text-xs font-bold">
             {message}
           </div>
         )}
 
-        {}
+        {/* Demandes de Rendez-vous */}
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-extrabold text-[#0c3239]">Demandes de Rendez-vous</h2>
@@ -206,7 +255,7 @@ export default function ProDashboard() {
           )}
         </div>
 
-        {}
+        {/* Formulaire & Liste des Services */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-4">
           <div className="lg:col-span-1">
             <ServiceForm

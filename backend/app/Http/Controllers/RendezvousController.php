@@ -88,22 +88,37 @@ class RendezvousController extends Controller
             'rendezvous' => $rendezvous
         ]);
     }
-    public function clientIndex(Request $request){
+
+    public function clientIndex(Request $request)
+    {
         $user = $request->user();
 
         $rendezvous = Rendezvous::where('client_id', $user->id)
-            ->with('service')
+            ->with(['service', 'review'])
             ->orderBy('created_at', 'desc')
             ->get();
+
         return response()->json($rendezvous);
     }
 
-    public function markAsCompleted($id){
-        $rdv = Rendezvous::findOrFail($id);
+    public function markAsCompleted(Request $request, $id)
+    {
+        $user = $request->user();
 
-        $rdv->status = 'completed';
+        $rdv = Rendezvous::whereHas('service', function ($q) use ($user) {
+            $q->where('user_id', $user->id);
+        })->find($id);
+
+        if (!$rdv) {
+            return response()->json(['message' => 'Rendez-vous non trouvé ou non autorisé.'], 403);
+        }
+
+        $rdv->status = 'Completed';
         $rdv->save();
 
-        return response()->json(['message' => 'Rendez-vous marque comme termine', 'rendezvous' => $rdv]);
+        return response()->json([
+            'message'    => 'Rendez-vous marqué comme terminé',
+            'rendezvous' => $rdv
+        ]);
     }
 }

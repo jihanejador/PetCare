@@ -14,8 +14,12 @@ export default function Register() {
     e.preventDefault();
     setErrors({});
     try {
-      await register(formData);
-      navigate('/login');
+      const res = await register(formData);
+      if (res.user?.role === 'pro') {
+        navigate('/pro/dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       setErrors(err.response?.data?.errors || {});
     }

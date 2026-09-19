@@ -13,11 +13,11 @@ function StarRating({ rating, setRating = null, readOnly = false }) {
           type="button"
           disabled={readOnly}
           onClick={() => setRating && setRating(star)}
-          className={`text-xl transition-transform ${
+          className={`text-base transition-transform ${
             !readOnly ? 'hover:scale-125 cursor-pointer' : 'cursor-default'
-          } ${star <= rating ? 'text-amber-400' : 'text-gray-300'}`}
+          } ${star <= Math.round(rating || 0) ? 'text-amber-400' : 'text-gray-300'}`}
         >
-          
+          ★
         </button>
       ))}
     </div>
@@ -46,7 +46,6 @@ export default function ClientDashboard() {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [reviewLoading, setReviewLoading] = useState(false);
-  const [reviewedRdvs, setReviewedRdvs] = useState([]);
 
   const categories = [
     { id: 1, name: "Garde d'animaux" },
@@ -97,7 +96,7 @@ export default function ClientDashboard() {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.post(
+      const res = await axios.post(
         'http://127.0.0.1:8000/api/rendezvous',
         {
           service_id: selectedService.id,
@@ -110,13 +109,13 @@ export default function ClientDashboard() {
       );
 
       setBookingMessage({ type: 'success', text: 'Rendez-vous demandé avec succès !' });
-      await fetchMyRendezvous(); 
+      await fetchMyRendezvous();
 
       setTimeout(() => {
         setIsModalOpen(false);
         setBookingMessage({ type: '', text: '' });
         setBookingData({ date: '', time: '' });
-      }, 1500);
+      }, 1200);
     } catch (err) {
       console.error('Erreur réservation:', err);
       setBookingMessage({ type: 'error', text: err.response?.data?.message || 'Erreur lors de la réservation.' });
@@ -168,7 +167,7 @@ export default function ClientDashboard() {
       );
 
       alert('Avis ajouté avec succès !');
-      setReviewedRdvs((prev) => [...prev, selectedRdvForReview.id]);
+      await fetchMyRendezvous();
       setSelectedRdvForReview(null);
       setComment('');
       setRating(5);
@@ -272,7 +271,7 @@ export default function ClientDashboard() {
                   )}
 
                   {rdv.status?.toLowerCase() === 'completed' && (
-                    reviewedRdvs.includes(rdv.id) ? (
+                    rdv.review ? (
                       <span className="text-xs text-emerald-600 font-bold italic py-1">Avis envoyé ✓</span>
                     ) : (
                       <button
@@ -312,6 +311,9 @@ export default function ClientDashboard() {
                 (rdv.status?.toLowerCase() === 'pending' || rdv.status?.toLowerCase() === 'accepted')
               );
 
+              const avgRating = Number(s.reviews_avg_rating || s.avg_rating || 0);
+              const reviewsCount = s.reviews_count ?? s.reviews?.length ?? 0;
+
               return (
                 <div key={s.id} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4">
                   <div className="space-y-3">
@@ -321,7 +323,20 @@ export default function ClientDashboard() {
                       </span>
                       <span className="text-xs font-semibold text-gray-400">{s.user?.city || 'Maroc'}</span>
                     </div>
+
                     <h3 className="text-lg font-bold text-[#0c3239]">{s.title}</h3>
+
+                    {}
+                    <div className="flex items-center gap-1.5 pt-0.5">
+                      <StarRating rating={avgRating} readOnly={true} />
+                      <span className="text-xs font-black text-[#0c3239]">
+                        {avgRating ? avgRating.toFixed(1) : '0.0'}
+                      </span>
+                      <span className="text-[10px] text-gray-400 font-medium">
+                        ({reviewsCount} avis)
+                      </span>
+                    </div>
+
                     <p className="text-xs text-gray-500 line-clamp-2">{s.description}</p>
                     
                     <div 

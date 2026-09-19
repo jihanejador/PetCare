@@ -10,7 +10,9 @@ class ServiceController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Service::with(['user', 'category']);
+        $query = Service::with(['user', 'category'])
+            ->withAvg('reviews', 'rating')
+            ->withCount('reviews');
 
         if ($request->filled('search')) {
             $search = $request->search;
