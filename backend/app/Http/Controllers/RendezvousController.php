@@ -91,14 +91,27 @@ class RendezvousController extends Controller
 
     public function clientIndex(Request $request)
     {
-        $user = $request->user();
+        try {
+            $user = $request->user();
 
-        $rendezvous = Rendezvous::where('client_id', $user->id)
-            ->with(['service', 'review'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+            if (!$user) {
+                return response()->json(['message' => 'Non authentifié.'], 401);
+            }
 
-        return response()->json($rendezvous);
+            $rendezvous = Rendezvous::where('client_id', $user->id)
+                ->with(['service.user', 'review'])
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return response()->json($rendezvous);
+        } catch (\Exception $e) {
+            $rendezvous = Rendezvous::where('client_id', $request->user()->id)
+                ->with('service')
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return response()->json($rendezvous);
+        }
     }
 
     public function markAsCompleted(Request $request, $id)
