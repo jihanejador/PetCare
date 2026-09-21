@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { getServices, getFavorites, toggleFavorite } from '../services/serviceApi';
 import Navbar from '../components/Navbar';
+import ChatModal from '../components/ChatModal';
 
 function StarRating({ rating, setRating = null, readOnly = false }) {
   return (
@@ -48,6 +49,9 @@ export default function ClientDashboard() {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [reviewLoading, setReviewLoading] = useState(false);
+
+  const [chatRecipient, setChatRecipient] = useState(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const categories = [
     { id: 1, name: "Garde d'animaux" },
@@ -214,7 +218,6 @@ export default function ClientDashboard() {
     <div className="bg-[#faf9f6] min-h-screen pb-12">
       <Navbar />
 
-      {}
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="bg-[#0c3239] rounded-[2.5rem] p-8 md:p-12 text-white flex flex-col lg:flex-row items-center justify-between gap-8 relative overflow-hidden shadow-xl">
           <div className="max-w-xl space-y-4 z-10">
@@ -268,7 +271,6 @@ export default function ClientDashboard() {
         </div>
       </div>
 
-      {}
       {myRendezvous.length > 0 && (
         <div className="max-w-7xl mx-auto px-6 py-6 space-y-4">
           <h2 className="text-2xl font-black text-[#0c3239]">Mes Rendez-vous</h2>
@@ -319,7 +321,6 @@ export default function ClientDashboard() {
         </div>
       )}
 
-      {}
       <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -377,7 +378,6 @@ export default function ClientDashboard() {
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-semibold text-gray-400">{s.user?.city || 'Maroc'}</span>
                         
-                        {}
                         <button
                           onClick={() => handleToggleFavorite(s.id)}
                           className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-50 hover:bg-rose-50 border border-gray-100 transition cursor-pointer"
@@ -392,7 +392,6 @@ export default function ClientDashboard() {
 
                     <h3 className="text-lg font-bold text-[#0c3239]">{s.title}</h3>
 
-                    {}
                     <div className="flex items-center gap-1.5 pt-0.5">
                       <StarRating rating={avgRating} readOnly={true} />
                       <span className="text-xs font-black text-[#0c3239]">
@@ -405,24 +404,38 @@ export default function ClientDashboard() {
 
                     <p className="text-xs text-gray-500 line-clamp-2">{s.description}</p>
                     
-                    <div 
-                      onClick={() => navigate(`/pro/${s.user?.id}`)} 
-                      className="flex items-center gap-2 pt-2 border-t border-gray-50 cursor-pointer hover:opacity-80 transition"
-                    >
-                      <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-200">
-                        {photoUrl ? (
-                          <img 
-                            src={photoUrl} 
-                            alt={s.user?.name || 'Pro'} 
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <span className="font-bold text-xs text-[#0c3239]">
-                            {s.user?.name ? s.user.name.charAt(0).toUpperCase() : 'P'}
-                          </span>
-                        )}
+                    <div className="flex items-center justify-between pt-2 border-t border-gray-50">
+                      <div 
+                        onClick={() => navigate(`/pro/${s.user?.id}`)} 
+                        className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition"
+                      >
+                        <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-200">
+                          {photoUrl ? (
+                            <img 
+                              src={photoUrl} 
+                              alt={s.user?.name || 'Pro'} 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span className="font-bold text-xs text-[#0c3239]">
+                              {s.user?.name ? s.user.name.charAt(0).toUpperCase() : 'P'}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-xs font-bold text-gray-700 hover:underline">{s.user?.name}</span>
                       </div>
-                      <span className="text-xs font-bold text-gray-700 hover:underline">{s.user?.name}</span>
+
+                      {s.user && (
+                        <button
+                          onClick={() => {
+                            setChatRecipient(s.user);
+                            setIsChatOpen(true);
+                          }}
+                          className="px-3 py-1 bg-[#0c3239]/10 hover:bg-[#0c3239] hover:text-white text-[#0c3239] text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1"
+                        >
+                          💬 Chat
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -474,7 +487,6 @@ export default function ClientDashboard() {
         )}
       </div>
 
-      {}
       {isModalOpen && selectedService && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl relative space-y-4">
@@ -533,7 +545,6 @@ export default function ClientDashboard() {
         </div>
       )}
 
-      {}
       {selectedRdvForReview && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl relative">
@@ -587,6 +598,13 @@ export default function ClientDashboard() {
           </div>
         </div>
       )}
+
+      {}
+      <ChatModal
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        recipient={chatRecipient}
+      />
     </div>
   );
 }

@@ -1,45 +1,108 @@
-import { useState, useEffect, useRef } from 'react';
-import { getConversation, sendMessage } from '../services/serviceApi';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const safeAtob = (str) => {
+  try {
+    if (!str) return null;
+    let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+    while (base64.length % 4) {
+      base64 += '=';
+    }
+    return atob(base64);
+  } catch (e) {
+    console.error("Erreur decode token:", e);
+    return null;
+  }
+};
+
+const getUserIdFromToken = (token) => {
+  if (!token) return null;
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const payloadStr = safeAtob(parts[1]);
+    if (!payloadStr) return null;
+    const payload = JSON.parse(payloadStr);
+    return payload.sub || payload.id || payload.user_id || null;
+  } catch (err) {
+    console.error("JWT parse error:", err);
+    return null;
+  }
+};
 
 export default function ChatModal({ isOpen, onClose, recipient }) {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const messagesEndRef = useRef(null);
+  const [currentUserId, setCurrentUserId] = useState(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        const userObj = JSON.parse(storedUser);
+        if (userObj && userObj.id) {
+          setCurrentUserId(userObj.id);
+          return;
+        }
+      } catch (e) {
+        console.error("Error parsing stored user:", e);
+      }
+    }
+
+    if (token) {
+      const uid = getUserIdFromToken(token);
+      if (uid) {
+        setCurrentUserId(uid);
+      }
+    }
+  }, []);
 
   const fetchMessages = async () => {
-    if (!recipient?.id) return;
+    if (!recipient || !recipient.id) return;
     try {
-      const res = await getConversation(recipient.id);
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`http://127.0.0.1:8000/api/messages/${recipient.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setMessages(res.data || []);
     } catch (err) {
-      console.error('Erreur chargement messages:', err);
+      console.error("Erreur lors du chargement des messages:", err);
     }
   };
 
   useEffect(() => {
-    if (isOpen && recipient?.id) {
+    if (isOpen && recipient) {
       fetchMessages();
-      const interval = setInterval(fetchMessages, 3000);
+      const interval = setInterval(fetchMessages, 4000); 
       return () => clearInterval(interval);
     }
   }, [isOpen, recipient]);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const handleSend = async (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !recipient?.id) return;
+    if (!newMessage.trim() || !recipient) return;
 
     setLoading(true);
     try {
-      const res = await sendMessage(recipient.id, newMessage);
+      const token = localStorage.getItem('token');
+      const res = await axios.post(
+        'http://127.0.0.1:8000/api/messages',
+        {
+          receiver_id: recipient.id,
+          content: newMessage,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
       setMessages((prev) => [...prev, res.data]);
       setNewMessage('');
     } catch (err) {
-      console.error('Erreur envoi message:', err);
+      console.error("Erreur lors de l'envoi du message:", err);
     } finally {
       setLoading(false);
     }
@@ -47,84 +110,79 @@ export default function ChatModal({ isOpen, onClose, recipient }) {
 
   if (!isOpen || !recipient) return null;
 
-  const currentUserId = JSON.parse(atob(localStorage.getItem('token')?.split('.')[1] || '{}'))?.sub;
-
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-3xl w-full max-w-md h-[500px] flex flex-col shadow-2xl overflow-hidden relative">
+      <div className="bg-white rounded-3xl w-full max-w-md h-[550px] flex flex-col shadow-2xl relative overflow-hidden">
+        
         {}
-        <div className="bg-[#0c3239] text-white p-4 flex items-center justify-between">
+        <div className="bg-[#0c3239] p-4 text-white flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-amber-400 text-[#0c3239] font-black flex items-center justify-center text-sm border border-white/20">
+            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center font-bold text-sm">
               {recipient.name ? recipient.name.charAt(0).toUpperCase() : 'U'}
             </div>
             <div>
               <h3 className="font-bold text-sm leading-tight">{recipient.name}</h3>
-              <span className="text-[10px] text-emerald-400 font-semibold">● En ligne</span>
+              <span className="text-[10px] text-[#82c341] font-medium">En ligne</span>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-300 hover:text-white font-bold text-lg cursor-pointer px-2"
+            className="text-gray-300 hover:text-white font-bold text-lg px-2 cursor-pointer"
           >
             ✕
           </button>
         </div>
 
         {}
-        <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-gray-50">
+        <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-[#faf9f6]">
           {messages.length === 0 ? (
-            <div className="text-center text-gray-400 text-xs py-10">
-              Aucun message. Envoyez le premier message !
+            <div className="text-center text-gray-400 text-xs py-8">
+              Aucun message pour l'instant. Dites bonjour ! 
             </div>
           ) : (
             messages.map((msg) => {
-              const isMe = Number(msg.sender_id) !== Number(recipient.id);
+              const isMe = String(msg.sender_id) === String(currentUserId);
               return (
                 <div
                   key={msg.id || Math.random()}
-                  className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
+                  className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
                 >
                   <div
-                    className={`max-w-[75%] p-3 rounded-2xl text-xs font-medium shadow-sm ${
+                    className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-xs ${
                       isMe
                         ? 'bg-[#0c3239] text-white rounded-br-none'
-                        : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none'
+                        : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none shadow-sm'
                     }`}
                   >
-                    <p className="break-words">{msg.content}</p>
-                    <span
-                      className={`text-[9px] block text-right mt-1 ${
-                        isMe ? 'text-gray-300' : 'text-gray-400'
-                      }`}
-                    >
-                      {msg.created_at ? new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                    </span>
+                    {msg.content || msg.message} 
                   </div>
+                  <span className="text-[9px] text-gray-400 mt-1 px-1">
+                    {msg.created_at ? new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                  </span>
                 </div>
               );
             })
           )}
-          <div ref={messagesEndRef} />
         </div>
 
         {}
-        <form onSubmit={handleSend} className="p-3 bg-white border-t border-gray-100 flex gap-2">
+        <form onSubmit={handleSendMessage} className="p-3 bg-white border-t border-gray-100 flex items-center gap-2">
           <input
             type="text"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Écrivez votre message..."
-            className="flex-1 text-xs p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0c3239]"
+            className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#0c3239]"
           />
           <button
             type="submit"
             disabled={loading || !newMessage.trim()}
-            className="px-4 py-2.5 bg-[#82c341] hover:bg-[#72ad37] text-[#0c3239] font-black text-xs rounded-xl transition disabled:opacity-50 cursor-pointer"
+            className="bg-[#82c341] text-[#0c3239] px-4 py-2.5 rounded-xl font-black text-xs hover:bg-[#72ad37] transition disabled:opacity-50 cursor-pointer"
           >
             {loading ? '...' : 'Envoyer'}
           </button>
         </form>
+
       </div>
     </div>
   );
