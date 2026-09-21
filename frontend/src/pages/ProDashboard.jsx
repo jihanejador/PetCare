@@ -117,7 +117,6 @@ export default function ProDashboard() {
     }
   };
 
-  // Calculs statistiques
   const totalCompleted = rendezvousList.filter(
     (r) => r.status?.toLowerCase() === 'completed' || r.status?.toLowerCase() === 'accepted'
   ).length;
@@ -145,7 +144,6 @@ export default function ProDashboard() {
           </span>
         </div>
 
-        {/* Cartes statistiques */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex items-center justify-between">
             <div>
@@ -153,7 +151,7 @@ export default function ProDashboard() {
               <span className="text-2xl font-black text-[#0c3239]">{services.length}</span>
             </div>
             <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-[#82c341] flex items-center justify-center font-bold text-lg">
-              🛠️
+              
             </div>
           </div>
 
@@ -163,7 +161,7 @@ export default function ProDashboard() {
               <span className="text-2xl font-black text-[#0c3239]">{totalCompleted}</span>
             </div>
             <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-lg">
-              📅
+              
             </div>
           </div>
 
@@ -187,7 +185,6 @@ export default function ProDashboard() {
           </div>
         )}
 
-        {/* Demandes de Rendez-vous */}
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-extrabold text-[#0c3239]">Demandes de Rendez-vous</h2>
@@ -255,7 +252,6 @@ export default function ProDashboard() {
           )}
         </div>
 
-        {/* Formulaire & Liste des Services */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-4">
           <div className="lg:col-span-1">
             <ServiceForm
