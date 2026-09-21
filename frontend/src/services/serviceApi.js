@@ -37,3 +37,6 @@ export const logout = async () => {
 };
 export const getFavorites = () => API.get('/favorites');
 export const toggleFavorite = (service_id) => API.post('/favorites/toggle', { service_id });
+export const getConversations = () => API.get('/messages/conversations');
+export const getConversation = (userId) => API.get(`/messages/${userId}`);
+export const sendMessage = (receiver_id, content) => API.post('/messages', { receiver_id, content });
