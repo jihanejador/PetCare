@@ -7,6 +7,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RendezvousController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\MessageController;
 use App\Models\Category;
 use Illuminate\Support\Facades\Route;
 
@@ -46,4 +47,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/favorites/toggle', [FavoriteController::class, 'toggle']);
 
     Route::post('/reviews', [ReviewController::class, 'store']);
+
+    Route::get('/messages/conversations', [MessageController::class, 'getConversations']);
+    Route::get('/messages/{otherUserId}', [MessageController::class, 'getConversation']);
+    Route::post('/message', [MessageController::class, 'sendMessage']);
 });
