@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { getServices } from '../services/serviceApi';
+import { getServices, getFavorites, toggleFavorite } from '../services/serviceApi';
 import Navbar from '../components/Navbar';
 
 function StarRating({ rating, setRating = null, readOnly = false }) {
@@ -35,6 +35,8 @@ export default function ClientDashboard() {
   const [loading, setLoading] = useState(false);
 
   const [myRendezvous, setMyRendezvous] = useState([]);
+  const [favoriteIds, setFavoriteIds] = useState([]);
+  const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
 
   const [selectedService, setSelectedService] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -84,10 +86,34 @@ export default function ClientDashboard() {
     }
   };
 
+  const fetchFavorites = async () => {
+    try {
+      const res = await getFavorites();
+      const favs = res.data || [];
+      setFavoriteIds(favs.map((f) => f.id));
+    } catch (err) {
+      console.error('Erreur chargement favoris:', err);
+    }
+  };
+
   useEffect(() => {
     fetchFilteredServices();
     fetchMyRendezvous();
+    fetchFavorites();
   }, [search, city, categoryId, page]);
+
+  const handleToggleFavorite = async (serviceId) => {
+    try {
+      const res = await toggleFavorite(serviceId);
+      if (res.data.is_favorited) {
+        setFavoriteIds((prev) => [...prev, serviceId]);
+      } else {
+        setFavoriteIds((prev) => prev.filter((id) => id !== serviceId));
+      }
+    } catch (err) {
+      console.error('Erreur toggle favorite:', err);
+    }
+  };
 
   const handleBookService = async (e) => {
     e.preventDefault();
@@ -96,7 +122,7 @@ export default function ClientDashboard() {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post(
+      await axios.post(
         'http://127.0.0.1:8000/api/rendezvous',
         {
           service_id: selectedService.id,
@@ -179,6 +205,10 @@ export default function ClientDashboard() {
       setReviewLoading(false);
     }
   };
+
+  const displayedServices = showOnlyFavorites
+    ? services.filter((s) => favoriteIds.includes(s.id))
+    : services;
 
   return (
     <div className="bg-[#faf9f6] min-h-screen pb-12">
@@ -291,16 +321,37 @@ export default function ClientDashboard() {
 
       {}
       <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-black text-[#0c3239]">Services Disponibles</h2>
-          <span className="text-xs font-bold text-gray-500">{pagination.total || 0} résultat(s)</span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <h2 className="text-2xl font-black text-[#0c3239]">
+              {showOnlyFavorites ? 'Mes Services Favoris' : 'Services Disponibles'}
+            </h2>
+            <button
+              onClick={() => setShowOnlyFavorites(!showOnlyFavorites)}
+              className={`px-4 py-1.5 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                showOnlyFavorites
+                  ? 'bg-rose-500 text-white shadow-md'
+                  : 'bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100'
+              }`}
+            >
+              <span>{showOnlyFavorites ? '❤️ Tous les services' : '❤️ Voir Favoris'}</span>
+              <span className="bg-white/20 px-1.5 py-0.5 rounded-full text-[10px]">
+                {favoriteIds.length}
+              </span>
+            </button>
+          </div>
+          <span className="text-xs font-bold text-gray-500">{displayedServices.length} résultat(s)</span>
         </div>
 
         {loading ? (
           <div className="text-center py-12 text-gray-500 font-bold">Chargement des services...</div>
+        ) : displayedServices.length === 0 ? (
+          <div className="bg-white p-8 rounded-3xl text-center text-gray-400 font-bold text-sm border border-gray-100">
+            {showOnlyFavorites ? "Vous n'avez aucun service dans vos favoris." : "Aucun service trouvé."}
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {services.map((s) => {
+            {displayedServices.map((s) => {
               const proPhoto = s.user?.photo || s.user?.avatar;
               const photoUrl = proPhoto
                 ? (proPhoto.startsWith('http') ? proPhoto : `http://127.0.0.1:8000/storage/${proPhoto}`)
@@ -311,17 +362,32 @@ export default function ClientDashboard() {
                 (rdv.status?.toLowerCase() === 'pending' || rdv.status?.toLowerCase() === 'accepted')
               );
 
+              const isFav = favoriteIds.includes(s.id);
               const avgRating = Number(s.reviews_avg_rating || s.avg_rating || 0);
               const reviewsCount = s.reviews_count ?? s.reviews?.length ?? 0;
 
               return (
-                <div key={s.id} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+                <div key={s.id} className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between space-y-4 relative">
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="text-xs font-bold bg-[#f3a6b8]/20 text-[#0c3239] px-3 py-1 rounded-full">
                         {s.category?.name || 'Général'}
                       </span>
-                      <span className="text-xs font-semibold text-gray-400">{s.user?.city || 'Maroc'}</span>
+                      
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-gray-400">{s.user?.city || 'Maroc'}</span>
+                        
+                        {}
+                        <button
+                          onClick={() => handleToggleFavorite(s.id)}
+                          className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-50 hover:bg-rose-50 border border-gray-100 transition cursor-pointer"
+                          title={isFav ? "Retirer des favoris" : "Ajouter aux favoris"}
+                        >
+                          <span className="text-base leading-none">
+                            {isFav ? '❤️' : '🤍'}
+                          </span>
+                        </button>
+                      </div>
                     </div>
 
                     <h3 className="text-lg font-bold text-[#0c3239]">{s.title}</h3>
@@ -391,7 +457,7 @@ export default function ClientDashboard() {
           </div>
         )}
 
-        {pagination.last_page > 1 && (
+        {!showOnlyFavorites && pagination.last_page > 1 && (
           <div className="flex justify-center gap-2 pt-8">
             {Array.from({ length: pagination.last_page }).map((_, index) => (
               <button
