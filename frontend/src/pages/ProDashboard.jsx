@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 import ServiceForm from '../components/ServiceForm';
+import ProChat from '../components/ProChat';
 import { getServices, createService, updateService, deleteService } from '../services/serviceApi';
 
 export default function ProDashboard() {
@@ -174,7 +175,7 @@ export default function ProDashboard() {
               </div>
             </div>
             <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center font-bold text-lg">
-              ⭐
+              
             </div>
           </div>
         </div>
@@ -185,71 +186,77 @@ export default function ProDashboard() {
           </div>
         )}
 
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-extrabold text-[#0c3239]">Demandes de Rendez-vous</h2>
-            <span className="text-xs font-bold text-gray-500">{rendezvousList.length} demande(s)</span>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-extrabold text-[#0c3239]">Demandes de Rendez-vous</h2>
+              <span className="text-xs font-bold text-gray-500">{rendezvousList.length} demande(s)</span>
+            </div>
+
+            {loadingRendezvous ? (
+              <div className="text-center py-6 text-gray-500 font-bold text-xs">Chargement des demandes...</div>
+            ) : rendezvousList.length === 0 ? (
+              <div className="bg-white p-6 rounded-3xl border border-gray-100 text-center text-xs font-bold text-gray-400">
+                Aucune demande de rendez-vous reçue pour le moment.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {rendezvousList.map((item) => (
+                  <div key={item.id} className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm space-y-3 flex flex-col justify-between">
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-start">
+                        <span className="text-xs font-bold text-[#0c3239]">{item.client?.name || 'Client'}</span>
+                        <span className={`text-[10px] font-black px-2.5 py-1 rounded-full ${
+                          item.status === 'Completed' || item.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                          item.status === 'Accepted' || item.status === 'accepted' ? 'bg-emerald-100 text-emerald-800' :
+                          item.status === 'Cancelled' || item.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                          'bg-amber-100 text-amber-800'
+                        }`}>
+                          {item.status}
+                        </span>
+                      </div>
+                      <p className="text-xs font-semibold text-gray-600">Service : <span className="font-bold text-[#0c3239]">{item.service?.title}</span></p>
+                      <div className="text-xs text-gray-500 bg-gray-50 p-2.5 rounded-xl font-medium">
+                         {item.date} &nbsp;•&nbsp; {item.time}
+                      </div>
+                    </div>
+
+                    <div className="pt-3 border-t border-gray-50 flex justify-end gap-2">
+                      {item.status?.toLowerCase() === 'pending' ? (
+                        <>
+                          <button
+                            onClick={() => handleStatusChange(item.id, 'Accepted')}
+                            className="px-3 py-1.5 bg-[#82c341] hover:bg-[#72ad37] text-[#0c3239] text-xs font-black rounded-xl transition"
+                          >
+                            Accepter
+                          </button>
+                          <button
+                            onClick={() => handleStatusChange(item.id, 'Cancelled')}
+                            className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold rounded-xl transition"
+                          >
+                            Refuser
+                          </button>
+                        </>
+                      ) : item.status?.toLowerCase() === 'accepted' ? (
+                        <button
+                          onClick={() => handleStatusChange(item.id, 'Completed')}
+                          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition"
+                        >
+                          Marquer comme terminé
+                        </button>
+                      ) : (
+                        <span className="text-xs text-gray-400 font-bold italic py-1">Demande traitée</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          {loadingRendezvous ? (
-            <div className="text-center py-6 text-gray-500 font-bold text-xs">Chargement des demandes...</div>
-          ) : rendezvousList.length === 0 ? (
-            <div className="bg-white p-6 rounded-3xl border border-gray-100 text-center text-xs font-bold text-gray-400">
-              Aucune demande de rendez-vous reçue pour le moment.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {rendezvousList.map((item) => (
-                <div key={item.id} className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm space-y-3 flex flex-col justify-between">
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-start">
-                      <span className="text-xs font-bold text-[#0c3239]">{item.client?.name || 'Client'}</span>
-                      <span className={`text-[10px] font-black px-2.5 py-1 rounded-full ${
-                        item.status === 'Completed' || item.status === 'completed' ? 'bg-blue-100 text-blue-800' :
-                        item.status === 'Accepted' || item.status === 'accepted' ? 'bg-emerald-100 text-emerald-800' :
-                        item.status === 'Cancelled' || item.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                        'bg-amber-100 text-amber-800'
-                      }`}>
-                        {item.status}
-                      </span>
-                    </div>
-                    <p className="text-xs font-semibold text-gray-600">Service : <span className="font-bold text-[#0c3239]">{item.service?.title}</span></p>
-                    <div className="text-xs text-gray-500 bg-gray-50 p-2.5 rounded-xl font-medium">
-                       {item.date} &nbsp;•&nbsp; {item.time}
-                    </div>
-                  </div>
-
-                  <div className="pt-3 border-t border-gray-50 flex justify-end gap-2">
-                    {item.status?.toLowerCase() === 'pending' ? (
-                      <>
-                        <button
-                          onClick={() => handleStatusChange(item.id, 'Accepted')}
-                          className="px-3 py-1.5 bg-[#82c341] hover:bg-[#72ad37] text-[#0c3239] text-xs font-black rounded-xl transition"
-                        >
-                          Accepter
-                        </button>
-                        <button
-                          onClick={() => handleStatusChange(item.id, 'Cancelled')}
-                          className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold rounded-xl transition"
-                        >
-                          Refuser
-                        </button>
-                      </>
-                    ) : item.status?.toLowerCase() === 'accepted' ? (
-                      <button
-                        onClick={() => handleStatusChange(item.id, 'Completed')}
-                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition"
-                      >
-                        Marquer comme terminé
-                      </button>
-                    ) : (
-                      <span className="text-xs text-gray-400 font-bold italic py-1">Demande traitée</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <div className="lg:col-span-1">
+            <ProChat />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-4">
