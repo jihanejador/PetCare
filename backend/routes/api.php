@@ -7,7 +7,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RendezvousController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\FavoriteController;
-use App\Http\Controllers\MessageController;
+use App\Http\Controllers\NotificationController;
 use App\Models\Category;
 use Illuminate\Support\Facades\Route;
 
@@ -48,8 +48,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/reviews', [ReviewController::class, 'store']);
 
-    Route::get('/messages/conversations', [MessageController::class, 'getConversations']);
-    Route::get('/messages/{otherUserId}', [MessageController::class, 'getConversation']);
-    Route::post('/messages', [MessageController::class, 'sendMessage']);
-    Route::post('/messages/read/{senderId}', [MessageController::class, 'markAsRead']);
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::post('/notifications/mark-as-read', [NotificationController::class, 'markAsRead']);
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
 });

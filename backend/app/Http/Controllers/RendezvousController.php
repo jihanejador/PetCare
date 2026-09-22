@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Rendezvous;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 
 class RendezvousController extends Controller
@@ -23,9 +24,20 @@ class RendezvousController extends Controller
             'status'     => 'Pending',
         ]);
 
+        $rendezvous->load('service.user');
+
+        if ($rendezvous->service && $rendezvous->service->user_id) {
+            Notification::create([
+                'user_id' => $rendezvous->service->user_id,
+                'title'   => 'Nouveau Rendez-vous',
+                'message' => "Vous avez reçu une nouvelle demande de rendez-vous pour le service: {$rendezvous->service->title}",
+                'type'    => 'rendezvous'
+            ]);
+        }
+
         return response()->json([
             'message'    => 'Rendez-vous demandé avec succès',
-            'rendezvous' => $rendezvous->load('service')
+            'rendezvous' => $rendezvous
         ], 201);
     }
 
@@ -53,13 +65,20 @@ class RendezvousController extends Controller
 
         $rendezvous = Rendezvous::whereHas('service', function ($q) use ($user) {
             $q->where('user_id', $user->id);
-        })->find($id);
+        })->with('service')->find($id);
 
         if (!$rendezvous) {
             return response()->json(['message' => 'Rendez-vous non trouvé ou non autorisé.'], 403);
         }
 
         $rendezvous->update(['status' => $request->status]);
+
+        Notification::create([
+            'user_id' => $rendezvous->client_id,
+            'title'   => 'Mise à jour de Rendez-vous',
+            'message' => "Le statut de votre rendez-vous pour '{$rendezvous->service->title}' est désormais : {$request->status}",
+            'type'    => 'rendezvous'
+        ]);
 
         return response()->json([
             'message'    => 'Statut mis à jour avec succès',
@@ -71,7 +90,7 @@ class RendezvousController extends Controller
     {
         $user = $request->user();
 
-        $rendezvous = Rendezvous::where('client_id', $user->id)->find($id);
+        $rendezvous = Rendezvous::where('client_id', $user->id)->with('service')->find($id);
 
         if (!$rendezvous) {
             return response()->json(['message' => 'Rendez-vous non trouvé.'], 404);
@@ -83,6 +102,15 @@ class RendezvousController extends Controller
 
         $rendezvous->update(['status' => 'Cancelled']);
 
+        if ($rendezvous->service && $rendezvous->service->user_id) {
+            Notification::create([
+                'user_id' => $rendezvous->service->user_id,
+                'title'   => 'Rendez-vous Annulé',
+                'message' => "Le client a annulé son rendez-vous pour le service: {$rendezvous->service->title}",
+                'type'    => 'rendezvous'
+            ]);
+        }
+
         return response()->json([
             'message'    => 'Rendez-vous annulé avec succès.',
             'rendezvous' => $rendezvous
@@ -91,27 +119,18 @@ class RendezvousController extends Controller
 
     public function clientIndex(Request $request)
     {
-        try {
-            $user = $request->user();
+        $user = $request->user();
 
-            if (!$user) {
-                return response()->json(['message' => 'Non authentifié.'], 401);
-            }
-
-            $rendezvous = Rendezvous::where('client_id', $user->id)
-                ->with(['service.user', 'review'])
-                ->orderBy('created_at', 'desc')
-                ->get();
-
-            return response()->json($rendezvous);
-        } catch (\Exception $e) {
-            $rendezvous = Rendezvous::where('client_id', $request->user()->id)
-                ->with('service')
-                ->orderBy('created_at', 'desc')
-                ->get();
-
-            return response()->json($rendezvous);
+        if (!$user) {
+            return response()->json(['message' => 'Non authentifié.'], 401);
         }
+
+        $rendezvous = Rendezvous::where('client_id', $user->id)
+            ->with(['service.user', 'review'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json($rendezvous);
     }
 
     public function markAsCompleted(Request $request, $id)
@@ -128,6 +147,13 @@ class RendezvousController extends Controller
 
         $rdv->status = 'Completed';
         $rdv->save();
+
+        Notification::create([
+            'user_id' => $rdv->client_id,
+            'title'   => 'Rendez-vous Terminé',
+            'message' => "Votre rendez-vous a été marqué comme terminé. N'hésitez pas à laisser un avis !",
+            'type'    => 'rendezvous'
+        ]);
 
         return response()->json([
             'message'    => 'Rendez-vous marqué comme terminé',
