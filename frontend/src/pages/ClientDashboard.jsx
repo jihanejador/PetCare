@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { getServices, getFavorites, toggleFavorite } from '../services/serviceApi';
 import Navbar from '../components/Navbar';
-import ChatModal from '../components/ChatModal';
 
 function StarRating({ rating, setRating = null, readOnly = false }) {
   return (
@@ -49,9 +48,6 @@ export default function ClientDashboard() {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
   const [reviewLoading, setReviewLoading] = useState(false);
-
-  const [chatRecipient, setChatRecipient] = useState(null);
-  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const categories = [
     { id: 1, name: "Garde d'animaux" },
@@ -424,18 +420,6 @@ export default function ClientDashboard() {
                         </div>
                         <span className="text-xs font-bold text-gray-700 hover:underline">{s.user?.name}</span>
                       </div>
-
-                      {s.user && (
-                        <button
-                          onClick={() => {
-                            setChatRecipient(s.user);
-                            setIsChatOpen(true);
-                          }}
-                          className="px-3 py-1 bg-[#0c3239]/10 hover:bg-[#0c3239] hover:text-white text-[#0c3239] text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1"
-                        >
-                          💬 Chat
-                        </button>
-                      )}
                     </div>
                   </div>
 
@@ -598,13 +582,6 @@ export default function ClientDashboard() {
           </div>
         </div>
       )}
-
-      {}
-      <ChatModal
-        isOpen={isChatOpen}
-        onClose={() => setIsChatOpen(false)}
-        recipient={chatRecipient}
-      />
     </div>
   );
 }

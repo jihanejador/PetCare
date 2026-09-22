@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import NotificationDropdown from './NotificationDropdown';
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -20,7 +21,9 @@ export default function Navbar() {
       </div>
 
       <div className="flex items-center gap-4">
-        {}
+        {/* Component NotificationDropdown */}
+        {user && <NotificationDropdown />}
+
         <button
           onClick={() => navigate('/profile')}
           className="text-xs bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full font-semibold text-gray-200 transition-all cursor-pointer border border-white/10"
