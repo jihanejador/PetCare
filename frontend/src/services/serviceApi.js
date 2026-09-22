@@ -1,42 +1,19 @@
-import axios from 'axios';
+import api from '../api/axios';
 
-const API = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api',
-});
-
-API.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-export const getServices = (params = {}) => API.get('/services', { params });
-export const getProProfile = (id) => API.get(`/pros/${id}`);
-export const createService = (data) => API.post('/services', data);
-export const updateService = (id, data) => API.put(`/services/${id}`, data);
-export const deleteService = (id) => API.delete(`/services/${id}`);
-export const getProfile = () => API.get('/profile');
-export const updateProfile = (formData) => API.post('/profile', formData, {
+export const getServices = (params = {}) => api.get('/services', { params });
+export const getProProfile = (id) => api.get(`/pros/${id}`);
+export const createService = (data) => api.post('/services', data);
+export const updateService = (id, data) => api.put(`/services/${id}`, data);
+export const deleteService = (id) => api.delete(`/services/${id}`);
+export const getProfile = () => api.get('/profile');
+export const updateProfile = (formData) => api.post('/profile', formData, {
   headers: {
     'Content-Type': 'multipart/form-data',
   },
 });
 
-export const logout = async () => {
-  try {
-    await API.post('/logout'); 
-  } catch (err) {
-    console.error('Erreur Logout:', err);
-  } finally {
-    localStorage.removeItem('token'); 
-    localStorage.removeItem('user');  
-    window.location.href = '/login';
-  }
-};
-export const getFavorites = () => API.get('/favorites');
-export const toggleFavorite = (service_id) => API.post('/favorites/toggle', { service_id });
-export const getConversations = () => API.get('/messages/conversations');
-export const getConversation = (userId) => API.get(`/messages/${userId}`);
-export const sendMessage = (receiver_id, content) => API.post('/messages', { receiver_id, content });
+export const getFavorites = () => api.get('/favorites');
+export const toggleFavorite = (service_id) => api.post('/favorites/toggle', { service_id });
+export const getConversations = () => api.get('/messages/conversations');
+export const getConversation = (userId) => api.get(`/messages/${userId}`);
+export const sendMessage = (receiver_id, content) => api.post('/messages', { receiver_id, content });
