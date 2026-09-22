@@ -21,7 +21,6 @@ export default function Navbar() {
       </div>
 
       <div className="flex items-center gap-4">
-        {/* Component NotificationDropdown */}
         {user && <NotificationDropdown />}
 
         <button
