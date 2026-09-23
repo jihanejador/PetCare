@@ -78,9 +78,14 @@ export default function ClientDashboard() {
       const token = localStorage.getItem('token');
       if (!token) return;
       const res = await axios.get('http://127.0.0.1:8000/api/rendezvous/client', {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json'
+        }
       });
-      setMyRendezvous(res.data || []);
+      console.log("Rendezvous data:", res.data);
+      const data = Array.isArray(res.data) ? res.data : (res.data.data || []);
+      setMyRendezvous(data);
     } catch (err) {
       console.error('Erreur chargement mes rendezvous:', err);
     }
@@ -97,9 +102,12 @@ export default function ClientDashboard() {
   };
 
   useEffect(() => {
-    fetchFilteredServices();
     fetchMyRendezvous();
     fetchFavorites();
+  }, []);
+
+  useEffect(() => {
+    fetchFilteredServices();
   }, [search, city, categoryId, page]);
 
   const handleToggleFavorite = async (serviceId) => {
@@ -122,7 +130,7 @@ export default function ClientDashboard() {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.post(
+      const res = await axios.post(
         'http://127.0.0.1:8000/api/rendezvous',
         {
           service_id: selectedService.id,
@@ -135,13 +143,18 @@ export default function ClientDashboard() {
       );
 
       setBookingMessage({ type: 'success', text: 'Rendez-vous demandé avec succès !' });
-      await fetchMyRendezvous();
+
+      if (res.data && res.data.rendezvous) {
+        setMyRendezvous((prev) => [res.data.rendezvous, ...prev]);
+      } else {
+        await fetchMyRendezvous();
+      }
 
       setTimeout(() => {
         setIsModalOpen(false);
         setBookingMessage({ type: '', text: '' });
         setBookingData({ date: '', time: '' });
-      }, 1200);
+      }, 1000);
     } catch (err) {
       console.error('Erreur réservation:', err);
       setBookingMessage({ type: 'error', text: err.response?.data?.message || 'Erreur lors de la réservation.' });
@@ -267,9 +280,14 @@ export default function ClientDashboard() {
         </div>
       </div>
 
-      {myRendezvous.length > 0 && (
-        <div className="max-w-7xl mx-auto px-6 py-6 space-y-4">
-          <h2 className="text-2xl font-black text-[#0c3239]">Mes Rendez-vous</h2>
+      <div className="max-w-7xl mx-auto px-6 py-6 space-y-4">
+        <h2 className="text-2xl font-black text-[#0c3239]">Mes Rendez-vous</h2>
+        
+        {myRendezvous.length === 0 ? (
+          <div className="bg-white p-6 rounded-2xl border border-gray-100 text-center text-gray-400 text-xs font-bold shadow-sm">
+            Vous n'avez aucun rendez-vous pour le moment.
+          </div>
+        ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {myRendezvous.map((rdv) => (
               <div key={rdv.id} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between space-y-3">
@@ -298,7 +316,7 @@ export default function ClientDashboard() {
                     </button>
                   )}
 
-                  {rdv.status?.toLowerCase() === 'completed' && (
+                  {(rdv.status?.toLowerCase() === 'completed' || rdv.status?.toLowerCase() === 'accepted') && (
                     rdv.review ? (
                       <span className="text-xs text-emerald-600 font-bold italic py-1">Avis envoyé ✓</span>
                     ) : (
@@ -314,8 +332,8 @@ export default function ClientDashboard() {
               </div>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       <div className="max-w-7xl mx-auto px-6 py-6 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
