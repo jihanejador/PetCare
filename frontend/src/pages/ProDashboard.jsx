@@ -151,7 +151,7 @@ export default function ProDashboard() {
               <span className="text-2xl font-black text-[#0c3239]">{services.length}</span>
             </div>
             <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-[#82c341] flex items-center justify-center font-bold text-lg">
-              🐾
+              
             </div>
           </div>
 
@@ -161,7 +161,7 @@ export default function ProDashboard() {
               <span className="text-2xl font-black text-[#0c3239]">{totalCompleted}</span>
             </div>
             <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-lg">
-              ✓
+              
             </div>
           </div>
 
@@ -170,11 +170,11 @@ export default function ProDashboard() {
               <span className="text-xs font-bold text-gray-400 block uppercase">Note moyenne</span>
               <div className="flex items-center gap-1.5 mt-0.5">
                 <span className="text-2xl font-black text-[#0c3239]">{averageRating}</span>
-                <span className="text-amber-400 text-lg">★</span>
+                
               </div>
             </div>
             <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center font-bold text-lg">
-              ★
+              
             </div>
           </div>
         </div>

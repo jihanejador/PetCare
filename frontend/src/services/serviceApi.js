@@ -14,6 +14,3 @@ export const updateProfile = (formData) => api.post('/profile', formData, {
 
 export const getFavorites = () => api.get('/favorites');
 export const toggleFavorite = (service_id) => api.post('/favorites/toggle', { service_id });
-export const getConversations = () => api.get('/messages/conversations');
-export const getConversation = (userId) => api.get(`/messages/${userId}`);
-export const sendMessage = (receiver_id, content) => api.post('/messages', { receiver_id, content });

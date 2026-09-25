@@ -7,7 +7,6 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RendezvousController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\FavoriteController;
-use App\Http\Controllers\NotificationController;
 use App\Models\Category;
 use Illuminate\Support\Facades\Route;
 
@@ -47,8 +46,4 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/favorites/toggle', [FavoriteController::class, 'toggle']);
 
     Route::post('/reviews', [ReviewController::class, 'store']);
-
-    Route::get('/notifications', [NotificationController::class, 'index']);
-    Route::post('/notifications/mark-as-read', [NotificationController::class, 'markAsRead']);
-    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
 });

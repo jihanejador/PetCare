@@ -74,12 +74,12 @@ export default function ProProfile() {
               <h1 className="text-3xl font-black text-[#0c3239]">{pro.name}</h1>
               {}
               <div className="flex items-center justify-center md:justify-start gap-1 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full w-fit">
-                <span className="text-amber-500 font-bold text-sm">⭐ {pro.avg_rating || '4.8'}</span>
+                <span className="text-amber-500 font-bold text-sm"> {pro.avg_rating || '4.8'}</span>
                 <span className="text-xs text-gray-500">({pro.reviews_count || 0} avis)</span>
               </div>
             </div>
 
-            <p className="text-sm font-semibold text-[#82c341]">📍 {pro.city || 'Maroc'}</p>
+            <p className="text-sm font-semibold text-[#82c341]"> {pro.city || 'Maroc'}</p>
             <p className="text-xs text-gray-600 leading-relaxed max-w-2xl">{pro.description || 'Aucune description disponible pour ce professionnel.'}</p>
           </div>
         </div>
