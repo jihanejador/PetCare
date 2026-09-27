@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('city')->nullable();
             $table->text('description')->nullable();
             $table->string('specialty')->nullable();
+            $table->string('avatar')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

@@ -14,6 +14,7 @@ return new class extends Migration
             $table->text('comment')->nullable();
             $table->foreignId('client_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('service_id')->constrained('services')->onDelete('cascade');
+            $table->foreignId('rendezvous_id')->constrained('rendezvous')->onDelete('cascade');
             $table->timestamps();
         });
     }

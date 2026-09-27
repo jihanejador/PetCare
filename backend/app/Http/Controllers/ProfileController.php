@@ -27,9 +27,13 @@ class ProfileController extends Controller
         ]);
 
         if ($request->hasFile('photo')) {
-            $user->photo = $request->file('photo')->store('avatars', 'public');
+            $path = $request->file('photo')->store('avatars', 'public');
+            $user->photo = $path;
+            $user->avatar = $path; 
         } elseif ($request->hasFile('avatar')) {
-            $user->photo = $request->file('avatar')->store('avatars', 'public');
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $user->photo = $path;
+            $user->avatar = $path;
         }
 
         if ($request->has('name')) $user->name = $request->input('name');

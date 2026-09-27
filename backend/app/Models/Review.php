@@ -14,6 +14,7 @@ class Review extends Model
         'comment',
         'client_id',
         'service_id',
+        'rendezvous_id'
     ];
 
     public function client()
