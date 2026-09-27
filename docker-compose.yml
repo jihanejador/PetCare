@@ -1,50 +1,65 @@
-version: '3.8'
-
 services:
-  app:
-    build:
-      context: ./backend 
-      dockerfile: Dockerfile
-    container_name: PetCare-app
-    restart: unless-stopped
-    tty: true
-    working_dir: /var/www
-    volumes:
-      - ./backend:/var/www
-    networks:
-      - petcare-network
-
-  webserver:
-    image: nginx:alpine
-    container_name: PetCare-webserver
-    restart: unless-stopped
-    ports:
-      - "8080:80"
-    volumes:
-      - ./backend:/var/www
-      - ./nginx/conf.d:/etc/nginx/conf.d
-    networks:
-      - petcare-network
-
   db:
     image: mysql:8.0
-    container_name: PetCare-db
+    container_name: petcare-db
     restart: unless-stopped
     environment:
       MYSQL_DATABASE: petcare_db
       MYSQL_ROOT_PASSWORD: root_password
       MYSQL_PASSWORD: secret_password
-      MYSQL_USER: PetCare_user
+      MYSQL_USER: petcare_user
     ports:
       - "3306:3306"
     volumes:
       - dbdata:/var/lib/mysql
     networks:
       - petcare-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: petcare-app
+    restart: unless-stopped
+    tty: true
+    working_dir: /var/www
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: petcare_db
+      DB_USERNAME: petcare_user
+      DB_PASSWORD: secret_password
+    volumes:
+      - ./backend:/var/www
+    networks:
+      - petcare-network
+    depends_on:
+      db:
+        condition: service_healthy
+
+  webserver:
+    image: nginx:alpine
+    container_name: petcare-webserver
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./backend:/var/www
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    networks:
+      - petcare-network
+    depends_on:
+      - app
 
   frontend:
     build:
-      context: ./frontend 
+      context: ./frontend
       dockerfile: Dockerfile
     container_name: petcare-frontend
     restart: unless-stopped
@@ -55,6 +70,8 @@ services:
       - /app/node_modules
     networks:
       - petcare-network
+    depends_on:
+      - app
 
 networks:
   petcare-network:
