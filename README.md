@@ -159,4 +159,4 @@ PetCare/
 
 🤝 Auteur
 
-Projet réalisé dans le cadre du développement de la plateforme full-stack PetCare.
+jihane jador 
